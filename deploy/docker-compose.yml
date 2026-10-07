@@ -1,0 +1,142 @@
+# The suite on one server: the app, PostgreSQL 16, Caddy (automatic HTTPS) and
+# the nightly backup. deploy/install.sh writes /opt/business-suite/.env and the
+# Caddyfile, then runs:
+#   docker compose --project-name business-suite --env-file /opt/business-suite/.env \
+#     -f /opt/business-suite/current/deploy/docker-compose.yml up -d
+# (deploy/suite.sh wraps that: `suite.sh ps`, `suite.sh logs app`, ...).
+# Sized for a 2 vCPU / 4 GB server and up to 50 people.
+
+name: business-suite
+
+x-app-env: &app-env
+  DATABASE_URL: postgres://suite:${POSTGRES_PASSWORD:?run deploy/install.sh first}@db:5432/suite
+  SUITE_SECRET_KEY: ${SUITE_SECRET_KEY:?}
+  SUITE_URL: ${SUITE_URL:?}
+  SUITE_SETUP_CODE: ${SUITE_SETUP_CODE:-}
+  SUITE_VERSION: ${SUITE_VERSION:?}
+  SUITE_FILES_DIR: /data/files
+  FILES_S3_ENDPOINT: ${FILES_S3_ENDPOINT:-}
+  FILES_S3_REGION: ${FILES_S3_REGION:-}
+  FILES_S3_BUCKET: ${FILES_S3_BUCKET:-}
+  FILES_S3_ACCESS_KEY_ID: ${FILES_S3_ACCESS_KEY_ID:-}
+  FILES_S3_SECRET_ACCESS_KEY: ${FILES_S3_SECRET_ACCESS_KEY:-}
+  # The optional business brain (the "brain" profile below). Empty BRAIN_URL = off.
+  BRAIN_URL: ${BRAIN_URL:-}
+  BRAIN_ADMIN_TOKEN: ${BRAIN_ADMIN_TOKEN:-}
+  BRAIN_PUBLIC_URL: http://127.0.0.1:7410
+  TZ: ${SUITE_TZ:-UTC}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: suite
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: suite
+    # Modest settings for a 4 GB server shared with the app.
+    command: ["postgres", "-c", "shared_buffers=128MB", "-c", "effective_cache_size=512MB", "-c", "work_mem=4MB", "-c", "maintenance_work_mem=64MB", "-c", "max_connections=50"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suite -d suite"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: &logging
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  app:
+    image: business-suite-app:${SUITE_VERSION:?}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      NODE_OPTIONS: --max-old-space-size=512
+    volumes:
+      - ${SUITE_HOME:-/opt/business-suite}/data/files:/data/files
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ${SUITE_HOME:-/opt/business-suite}/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    logging: *logging
+
+  backup:
+    image: business-suite-app:${SUITE_VERSION:?}
+    restart: unless-stopped
+    command: ["node", "scripts/backup.mjs", "--daemon"]
+    environment:
+      <<: *app-env
+      BACKUP_DIR: /backups
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+      BACKUP_S3_ENDPOINT: ${BACKUP_S3_ENDPOINT:-}
+      BACKUP_S3_REGION: ${BACKUP_S3_REGION:-}
+      BACKUP_S3_BUCKET: ${BACKUP_S3_BUCKET:-}
+      BACKUP_S3_PREFIX: ${BACKUP_S3_PREFIX:-business-suite}
+      BACKUP_S3_ACCESS_KEY_ID: ${BACKUP_S3_ACCESS_KEY_ID:-}
+      BACKUP_S3_SECRET_ACCESS_KEY: ${BACKUP_S3_SECRET_ACCESS_KEY:-}
+    volumes:
+      - ${SUITE_HOME:-/opt/business-suite}/data/files:/data/files:ro
+      - ${SUITE_HOME:-/opt/business-suite}/backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    logging: *logging
+
+  # Optional: a model on this server instead of a provider's API. Off unless
+  # started with the "local-ai" profile (docs/DEPLOY.md, "A local model"). It
+  # needs far more memory than the suite: plan on 8 GB or more for a small model.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local-ai"]
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    logging: *logging
+
+  # Optional: the business brain (GBrain, keyword-only, pinned; deploy/brain/).
+  # Off unless the owner runs `business-suite brain on`, which adds the "brain"
+  # profile and BRAIN_URL to .env (docs/apps/assistant.md). Reachable only on
+  # this compose network: coding agents go through the app's checked address.
+  # About 400 MB while running; its first start briefly needs about 870 MB.
+  brain:
+    image: business-suite-brain:0.60.96.0
+    build:
+      context: ./brain
+    profiles: ["brain"]
+    restart: unless-stopped
+    mem_limit: 1g
+    environment:
+      GBRAIN_ADMIN_BOOTSTRAP_TOKEN: ${BRAIN_ADMIN_TOKEN:-}
+      # GBrain wants HTTPS or loopback here; the app connects by service name (BRAIN_URL).
+      BRAIN_PUBLIC_URL: http://127.0.0.1:7410
+    volumes:
+      - brain_data:/data
+    logging: *logging
+
+volumes:
+  brain_data:
+  pgdata:
+  caddy_data:
+  caddy_config:
+  ollama:

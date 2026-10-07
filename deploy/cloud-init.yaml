@@ -1,0 +1,51 @@
+#cloud-config
+# The "few clicks" install. When you create the server at your provider,
+# choose Ubuntu 24.04 (or 26.04), find the box called "User data" or
+# "Cloud config" (sometimes under "Advanced"), and paste this whole file.
+# Easiest: download cloud-init.yaml from the latest release at
+# https://github.com/Devtest-Dan/business-suite/releases (address and SHA-256
+# already filled in) and change only the setup code. Otherwise change the
+# lines marked CHANGE first. The server sets itself up in about
+# ten minutes after it starts; then open the address and use your setup code.
+#
+# No domain yet? Leave SUITE_DOMAIN empty: the suite answers at
+# https://<the server's IP with dashes>.sslip.io (for example
+# https://203-0-113-7.sslip.io). You can move to your own domain later.
+#
+# The install log is on the server at /var/log/business-suite-install.log.
+
+write_files:
+  - path: /root/business-suite-install.env
+    permissions: "0600"
+    content: |
+      # CHANGE: the release address and its SHA-256, exactly as you were given them.
+      SUITE_RELEASE_URL=https://example.com/business-suite-0.1.0.tar.gz
+      SUITE_RELEASE_SHA256=paste-the-sha256-here
+      # CHANGE: a code only you know. The first-run page asks for it, so nobody
+      # else can claim your suite before you open it.
+      SUITE_SETUP_CODE=choose-a-code-only-you-know
+      # Optional: your domain (its DNS A record must point at this server's IP).
+      SUITE_DOMAIN=
+      # Optional: an email address for the HTTPS certificate.
+      SUITE_ACME_EMAIL=
+      # Optional: the timezone for the nightly backup, e.g. America/New_York or Asia/Kolkata.
+      SUITE_TZ=
+
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+
+runcmd:
+  - - bash
+    - -c
+    - |
+      set -euo pipefail
+      exec >>/var/log/business-suite-install.log 2>&1
+      set -a; . /root/business-suite-install.env; set +a
+      if [ -n "${SUITE_TZ:-}" ]; then timedatectl set-timezone "$SUITE_TZ" || true; fi
+      curl -fsSL "$SUITE_RELEASE_URL" -o /root/business-suite.tar.gz
+      echo "$SUITE_RELEASE_SHA256  /root/business-suite.tar.gz" | sha256sum -c -
+      rm -rf /root/business-suite-release && mkdir -p /root/business-suite-release
+      tar -xzf /root/business-suite.tar.gz -C /root/business-suite-release --strip-components=1
+      bash /root/business-suite-release/deploy/install.sh --yes

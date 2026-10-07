@@ -1,0 +1,11 @@
+{
+  "$comment": "Installed modules, in migration order. scripts/migrate.mjs reads this; modules/registry.ts must list the same ids.",
+  "modules": [
+    "announcements",
+    "tasks",
+    "docs",
+    "customers",
+    "assistant",
+    "chat"
+  ]
+}

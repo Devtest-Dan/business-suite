@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Light by default; dark follows the device unless the person
+ * picked one in Account (html[data-theme]). Modules use the utility classes
+ * below (bg-surface, text-muted, border-line, text-accent ...) and the
+ * component classes (.btn, .card, .input ...), never raw colours.
+ */
+:root {
+  --bg: #f6f6f3;
+  --surface: #ffffff;
+  --surface-2: #efefea;
+  --text: #1c1d1f;
+  --muted: #55575c;
+  --subtle: #74767c;
+  --line: #dedfd9;
+  --accent: #1f5f8b;
+  --accent-strong: #174b6e;
+  --accent-soft: #e3eef6;
+  --accent-fg: #ffffff;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --ok: #1f7a4d;
+  --ok-soft: #e6f4ec;
+  --warn: #8a5a00;
+  --warn-soft: #fbf1dc;
+  --radius: 10px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131416;
+    --surface: #1b1c1f;
+    --surface-2: #24262a;
+    --text: #ececea;
+    --muted: #b0b2b6;
+    --subtle: #8e9095;
+    --line: #2f3136;
+    --accent: #6cb0e0;
+    --accent-strong: #8fc4ea;
+    --accent-soft: #1c2c38;
+    --accent-fg: #0d1a24;
+    --danger: #f1867c;
+    --danger-soft: #3a1d1b;
+    --ok: #6fcf9b;
+    --ok-soft: #17301f;
+    --warn: #e8b85a;
+    --warn-soft: #33290f;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #131416;
+  --surface: #1b1c1f;
+  --surface-2: #24262a;
+  --text: #ececea;
+  --muted: #b0b2b6;
+  --subtle: #8e9095;
+  --line: #2f3136;
+  --accent: #6cb0e0;
+  --accent-strong: #8fc4ea;
+  --accent-soft: #1c2c38;
+  --accent-fg: #0d1a24;
+  --danger: #f1867c;
+  --danger-soft: #3a1d1b;
+  --ok: #6fcf9b;
+  --ok-soft: #17301f;
+  --warn: #e8b85a;
+  --warn-soft: #33290f;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--text);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .h1 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  .h2 {
+    @apply text-lg font-semibold;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .link {
+    color: var(--accent);
+    @apply underline-offset-2 hover:underline;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    @apply p-4 sm:p-5;
+  }
+  .card-link {
+    @apply transition-colors;
+  }
+  .card-link:hover {
+    border-color: var(--accent);
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium;
+  }
+  .hint {
+    color: var(--subtle);
+    @apply mt-1 block text-xs;
+  }
+  .input {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 3px);
+    color: var(--text);
+    @apply block w-full px-3 py-2 text-base sm:text-sm;
+  }
+  .input:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .btn {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) - 3px);
+    color: var(--text);
+    @apply inline-flex min-h-10 items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium transition-colors;
+  }
+  .btn:hover {
+    background: var(--surface-2);
+  }
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-fg);
+  }
+  .btn-primary:hover {
+    background: var(--accent-strong);
+  }
+  .btn-danger {
+    color: var(--danger);
+  }
+  .badge {
+    background: var(--surface-2);
+    color: var(--muted);
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+  .badge-accent {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .badge-ok {
+    background: var(--ok-soft);
+    color: var(--ok);
+  }
+  .badge-warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .badge-danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+  .notice {
+    border-radius: calc(var(--radius) - 3px);
+    @apply px-3 py-2 text-sm;
+  }
+  .notice-error {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+  .notice-ok {
+    background: var(--ok-soft);
+    color: var(--ok);
+  }
+  .notice-warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .table {
+    @apply w-full text-left text-sm;
+  }
+  .table th {
+    color: var(--subtle);
+    border-bottom: 1px solid var(--line);
+    @apply px-2 py-2 text-xs font-medium uppercase tracking-wide;
+  }
+  .table td {
+    border-bottom: 1px solid var(--line);
+    @apply px-2 py-2 align-top;
+  }
+}

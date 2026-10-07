@@ -1,0 +1,1537 @@
+{
+ "evalCases": [
+  {
+   "name": "email-plain",
+   "text": "Reach me at owner@example.com for pricing.",
+   "must_absent": [
+    "owner@example.com"
+   ],
+   "must_present": [],
+   "output": "Reach me at [EMAIL] for pricing."
+  },
+  {
+   "name": "email-plus-addressing",
+   "text": "Send invoices to billing+ap@example.co.in please.",
+   "must_absent": [
+    "billing+ap@example.co.in"
+   ],
+   "must_present": [],
+   "output": "Send invoices to [EMAIL] please."
+  },
+  {
+   "name": "phone-intl-spaced",
+   "text": "Call me on +91 98765 43210 anytime.",
+   "must_absent": [
+    "+91 98765 43210"
+   ],
+   "must_present": [],
+   "output": "Call me on [PHONE]anytime."
+  },
+  {
+   "name": "phone-us-paren-dash",
+   "text": "You can reach the office at (415) 555-2671 during business hours.",
+   "must_absent": [
+    "(415) 555-2671"
+   ],
+   "must_present": [],
+   "output": "You can reach the office at [PHONE] during business hours."
+  },
+  {
+   "name": "phone-us-dashed",
+   "text": "Call 415-555-2671 for support.",
+   "must_absent": [
+    "415-555-2671"
+   ],
+   "must_present": [],
+   "output": "Call [PHONE] for support."
+  },
+  {
+   "name": "phone-us-dotted",
+   "text": "Fax us at 415.555.2671 anytime.",
+   "must_absent": [
+    "415.555.2671"
+   ],
+   "must_present": [],
+   "output": "Fax us at [PHONE] anytime."
+  },
+  {
+   "name": "phone-intl-paren-cc",
+   "text": "International line: +1 (415) 555 2671.",
+   "must_absent": [
+    "+1 (415) 555 2671"
+   ],
+   "must_present": [],
+   "output": "International line: [PHONE]."
+  },
+  {
+   "name": "phone-std-dashed-landline",
+   "text": "Landline: 022-2604-1234 for the shop.",
+   "must_absent": [
+    "022-2604-1234"
+   ],
+   "must_present": [],
+   "output": "Landline: [PHONE] for the shop."
+  },
+  {
+   "name": "card-spaced",
+   "text": "Card on file: 4111 1111 1111 1111 for deposits.",
+   "must_absent": [
+    "4111 1111 1111 1111"
+   ],
+   "must_present": [],
+   "output": "Card on file: [CARD]for deposits."
+  },
+  {
+   "name": "card-dashed",
+   "text": "Card number 4111-1111-1111-1111 was charged.",
+   "must_absent": [
+    "4111-1111-1111-1111"
+   ],
+   "must_present": [],
+   "output": "Card number [CARD]was charged."
+  },
+  {
+   "name": "card-bare-16digit",
+   "text": "The 4111111111111111 card was charged to the account.",
+   "must_absent": [
+    "4111111111111111"
+   ],
+   "must_present": [],
+   "output": "The [CARD]card was charged to the account."
+  },
+  {
+   "name": "ssn",
+   "text": "SSN on file: 123-45-6789 for verification.",
+   "must_absent": [
+    "123-45-6789"
+   ],
+   "must_present": [],
+   "output": "SSN on file: [ID] for verification."
+  },
+  {
+   "name": "name-salutation-1",
+   "text": "I'm Priya Sharma, happy to help with your order.",
+   "must_absent": [
+    "Priya Sharma"
+   ],
+   "must_present": [],
+   "output": "I'm [NAME], happy to help with your order."
+  },
+  {
+   "name": "name-salutation-2",
+   "text": "My name is Rahul Mehta and I run the shop.",
+   "must_absent": [
+    "Rahul Mehta"
+   ],
+   "must_present": [],
+   "output": "My name is [NAME] and I run the shop."
+  },
+  {
+   "name": "name-possessive",
+   "text": "Anita Desai's clinic opens at 9am.",
+   "must_absent": [
+    "Anita Desai"
+   ],
+   "must_present": [],
+   "output": "[NAME]'s clinic opens at 9am."
+  },
+  {
+   "name": "name-labeled-single-token",
+   "text": "Owner: Deepak runs daily operations.",
+   "must_absent": [
+    "Deepak"
+   ],
+   "must_present": [],
+   "output": "Owner: [NAME] runs daily operations."
+  },
+  {
+   "name": "name-labeled-contact-person",
+   "text": "Contact person: Anita Desai for billing questions.",
+   "must_absent": [
+    "Anita Desai"
+   ],
+   "must_present": [],
+   "output": "Contact person: [NAME] for billing questions."
+  },
+  {
+   "name": "address-labeled-with-pin",
+   "text": "Address: 42 MG Road, Andheri, Mumbai 400053",
+   "must_absent": [
+    "42 MG Road",
+    "400053"
+   ],
+   "must_present": [],
+   "output": "Address: [ADDRESS]"
+  },
+  {
+   "name": "address-labeled-street",
+   "text": "Address: 17 Hill Street near the market",
+   "must_absent": [
+    "17 Hill Street"
+   ],
+   "must_present": [],
+   "output": "Address: [ADDRESS]"
+  },
+  {
+   "name": "address-freestanding",
+   "text": "Our office is at 1600 Amphitheatre Parkway near the tech park.",
+   "must_absent": [
+    "1600 Amphitheatre Parkway"
+   ],
+   "must_present": [],
+   "output": "Our office is at 1600 [NAME] near the tech park."
+  },
+  {
+   "name": "regression-parenthesized-cc-phone",
+   "text": "Call (91) 98765-43210 for support.",
+   "must_absent": [
+    "(91) 98765-43210"
+   ],
+   "must_present": [],
+   "output": "Call [PHONE] for support."
+  },
+  {
+   "name": "regression-glued-pan",
+   "text": "Client details panFGHIJ5678K on file for KYC.",
+   "must_absent": [
+    "FGHIJ5678K"
+   ],
+   "must_present": [],
+   "output": "Client details pan[ID] on file for KYC."
+  },
+  {
+   "name": "regression-glued-card",
+   "text": "Card on file card4111111111111111 for this customer.",
+   "must_absent": [
+    "4111111111111111"
+   ],
+   "must_present": [],
+   "output": "Card on file card[CARD]for this customer."
+  },
+  {
+   "name": "regression-repeated-person-mention",
+   "text": "Priya Sharma called this morning. Priya will follow up tomorrow.",
+   "must_absent": [
+    "Priya Sharma",
+    "Priya will"
+   ],
+   "must_present": [],
+   "output": "[NAME] called this morning. [NAME] will follow up tomorrow."
+  },
+  {
+   "name": "name-run-middle-name-leak",
+   "text": "Dana Marie Whitfield owes 3,000",
+   "must_absent": [
+    "Dana Marie Whitfield",
+    "Whitfield"
+   ],
+   "must_present": [],
+   "output": "[NAME] owes 3,000"
+  },
+  {
+   "name": "name-run-three-word-leak",
+   "text": "Mary Jane Watson booked an appointment",
+   "must_absent": [
+    "Mary Jane Watson",
+    "Watson"
+   ],
+   "must_present": [],
+   "output": "[NAME] booked an appointment"
+  },
+  {
+   "name": "invoice-verb-preserved-no-surname-leak",
+   "text": "Invoice Dana Whitfield 3,000",
+   "must_absent": [
+    "Dana Whitfield",
+    "Whitfield"
+   ],
+   "must_present": [
+    "Invoice"
+   ],
+   "output": "Invoice [NAME] 3,000"
+  },
+  {
+   "name": "invoice-verb-preserved-lone-name",
+   "text": "Invoice Dana 3,000",
+   "must_absent": [
+    "Dana"
+   ],
+   "must_present": [
+    "Invoice"
+   ],
+   "output": "Invoice [NAME] 3,000"
+  },
+  {
+   "name": "invoice-verb-preserved-f18-s3-acceptance-string",
+   "text": "Invoice Dana 3,000 for the bridal package",
+   "must_absent": [
+    "Dana"
+   ],
+   "must_present": [
+    "Invoice"
+   ],
+   "output": "Invoice [NAME] 3,000 for the bridal package"
+  },
+  {
+   "name": "invoice-verb-preserved-full-name-with-trailing-clause",
+   "text": "Invoice Dana Whitfield 3,000 for the bridal package",
+   "must_absent": [
+    "Dana Whitfield",
+    "Whitfield"
+   ],
+   "must_present": [
+    "Invoice"
+   ],
+   "output": "Invoice [NAME] 3,000 for the bridal package"
+  },
+  {
+   "name": "bill-collision-still-fully-redacts",
+   "text": "Bill Smith owes 3,000",
+   "must_absent": [
+    "Bill Smith",
+    "Smith"
+   ],
+   "must_present": [],
+   "output": "[NAME] owes 3,000"
+  },
+  {
+   "name": "email-verb-preserved-name-redacts",
+   "text": "Email Dana Whitfield about booking",
+   "must_absent": [
+    "Dana Whitfield",
+    "Whitfield"
+   ],
+   "must_present": [
+    "Email"
+   ],
+   "output": "Email [NAME] about booking"
+  },
+  {
+   "name": "call-verb-preserved-titled-name-redacts",
+   "text": "Call Mrs Sharma tomorrow",
+   "must_absent": [
+    "Mrs Sharma",
+    "Sharma"
+   ],
+   "must_present": [
+    "Call"
+   ],
+   "output": "Call [NAME] tomorrow"
+  },
+  {
+   "name": "invoice-verb-preserved-business-survives",
+   "text": "Invoice Grace Community Church",
+   "must_absent": [],
+   "must_present": [
+    "Invoice",
+    "Grace Community Church"
+   ],
+   "output": "Invoice Grace Community Church"
+  },
+  {
+   "name": "mark-not-a-safe-verb-still-redacts",
+   "text": "Mark Anthony called about his invoice",
+   "must_absent": [
+    "Mark Anthony",
+    "Anthony"
+   ],
+   "must_present": [],
+   "output": "[NAME] called about his invoice"
+  },
+  {
+   "name": "sue-not-a-safe-verb-still-redacts",
+   "text": "Sue Chen booked an appointment",
+   "must_absent": [
+    "Sue Chen",
+    "Chen"
+   ],
+   "must_present": [],
+   "output": "[NAME] booked an appointment"
+  },
+  {
+   "name": "name-run-four-word",
+   "text": "Dana Marie Anne Whitfield owes 3,000",
+   "must_absent": [
+    "Dana Marie Anne Whitfield",
+    "Whitfield",
+    "Anne Whitfield"
+   ],
+   "must_present": [],
+   "output": "[NAME] [NAME] owes 3,000"
+  },
+  {
+   "name": "biz-grace-community-church",
+   "text": "Grace Community Church is doing well",
+   "must_absent": [],
+   "must_present": [
+    "Grace Community Church"
+   ],
+   "output": "Grace Community Church is doing well"
+  },
+  {
+   "name": "cso-block-name-run-trailing-biz-noun",
+   "text": "Ravi Kumar Sharma Salon opens at 9",
+   "must_absent": [
+    "Ravi Kumar Sharma Salon",
+    "Sharma Salon",
+    "Kumar Sharma"
+   ],
+   "must_present": [
+    "Salon"
+   ],
+   "output": "[NAME] Salon opens at 9"
+  },
+  {
+   "name": "cso-block-name-run-trailing-biz-noun-2",
+   "text": "Contact Dana Marie Whitfield Company for details",
+   "must_absent": [
+    "Dana Marie Whitfield Company",
+    "Marie Whitfield",
+    "Whitfield Company"
+   ],
+   "must_present": [
+    "Company"
+   ],
+   "output": "Contact [NAME] Company for details"
+  },
+  {
+   "name": "name-list-two-names-and",
+   "text": "Invoice Dana and Priya",
+   "must_absent": [
+    "Dana",
+    "Priya"
+   ],
+   "must_present": [
+    "Invoice"
+   ],
+   "output": "Invoice [NAME] and [NAME]"
+  },
+  {
+   "name": "name-list-three-names-oxford-comma",
+   "text": "Invoice Dana, Priya, and Sam",
+   "must_absent": [
+    "Dana",
+    "Priya",
+    "Sam"
+   ],
+   "must_present": [
+    "Invoice"
+   ],
+   "output": "Invoice [NAME], [NAME], and [NAME]"
+  },
+  {
+   "name": "name-list-two-names-and-trailing-clause",
+   "text": "Email Dana and Priya about the invoice",
+   "must_absent": [
+    "Dana",
+    "Priya"
+   ],
+   "must_present": [
+    "Email"
+   ],
+   "output": "Email [NAME] and [NAME] about the invoice"
+  },
+  {
+   "name": "name-list-business-and-survives",
+   "text": "Sharma and Sons Hardware delivered the order",
+   "must_absent": [],
+   "must_present": [
+    "Sharma and Sons Hardware"
+   ],
+   "output": "Sharma and Sons Hardware delivered the order"
+  },
+  {
+   "name": "biz-fresh-farms-produce",
+   "text": "Our supplier Fresh Farms Produce delivers on Mondays.",
+   "must_absent": [],
+   "must_present": [
+    "Fresh Farms Produce"
+   ],
+   "output": "Our supplier Fresh Farms Produce delivers on Mondays."
+  },
+  {
+   "name": "biz-bloom-beauty-studio",
+   "text": "Welcome to Bloom Beauty Studio, we open at 10am.",
+   "must_absent": [],
+   "must_present": [
+    "Bloom Beauty Studio"
+   ],
+   "output": "Welcome to Bloom Beauty Studio, we open at 10am."
+  },
+  {
+   "name": "biz-acme-salon",
+   "text": "Acme Salon is located downtown.",
+   "must_absent": [],
+   "must_present": [
+    "Acme Salon"
+   ],
+   "output": "Acme Salon is located downtown."
+  },
+  {
+   "name": "biz-sharma-and-sons-hardware",
+   "text": "Sharma & Sons Hardware is my family business, started decades ago.",
+   "must_absent": [],
+   "must_present": [
+    "Sharma & Sons Hardware"
+   ],
+   "output": "Sharma & Sons Hardware is my family business, started decades ago."
+  },
+  {
+   "name": "biz-patel-brothers-grocery",
+   "text": "Patel Brothers Grocery restocks every Friday.",
+   "must_absent": [],
+   "must_present": [
+    "Patel Brothers Grocery"
+   ],
+   "output": "Patel Brothers Grocery restocks every Friday."
+  },
+  {
+   "name": "biz-bakery-called-sugar-loop",
+   "text": "I run a small home-based cupcake bakery called Sugar Loop.",
+   "must_absent": [],
+   "must_present": [
+    "Sugar Loop"
+   ],
+   "output": "I run a small home-based cupcake bakery called Sugar Loop."
+  },
+  {
+   "name": "biz-brand-is-nimbus",
+   "text": "my brand is Nimbus and we sell eco-friendly bags.",
+   "must_absent": [],
+   "must_present": [
+    "Nimbus"
+   ],
+   "output": "my brand is Nimbus and we sell eco-friendly bags."
+  },
+  {
+   "name": "biz-owner-label-deepak-auto-service",
+   "text": "Owner: Deepak Auto Service handles all repairs.",
+   "must_absent": [],
+   "must_present": [
+    "Deepak Auto Service"
+   ],
+   "output": "Owner: Deepak Auto Service handles all repairs."
+  },
+  {
+   "name": "biz-mehta-textiles",
+   "text": "Mehta Textiles supplies fabric to local tailors.",
+   "must_absent": [],
+   "must_present": [
+    "Mehta Textiles"
+   ],
+   "output": "Mehta Textiles supplies fabric to local tailors."
+  },
+  {
+   "name": "biz-person-and-business-share-token",
+   "text": "I'm Ravi Patel and I run Patel Brothers Grocery",
+   "must_absent": [
+    "Ravi Patel"
+   ],
+   "must_present": [
+    "Patel Brothers Grocery"
+   ],
+   "output": "I'm [NAME] and I run Patel Brothers Grocery"
+  },
+  {
+   "name": "city-name-survives",
+   "text": "I run a small tiffin service in Pune, mostly office lunches.",
+   "must_absent": [],
+   "must_present": [
+    "Pune"
+   ],
+   "output": "I run a small tiffin service in Pune, mostly office lunches."
+  },
+  {
+   "name": "ner-only-single-name",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "brand-bigram-survives",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "ampersand-business-with-proprietor",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "comma-street-address",
+   "text": "We are at 12, MG Road, Camp, Pune 411001.",
+   "must_absent": [
+    "12, MG Road",
+    "411001"
+   ],
+   "must_present": [],
+   "output": "We are at [ADDRESS], Camp, Pune [ADDRESS]."
+  },
+  {
+   "name": "interactive-default-no-ner",
+   "text": "I'm Priya Sharma, reach me at priya@example.com. My brand is Nimbus.",
+   "must_absent": [],
+   "must_present": [],
+   "output": "I'm [NAME], reach me at [EMAIL]. My brand is Nimbus."
+  },
+  {
+   "name": "person-context-beats-ner",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "contact-label-beats-ner",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "self-contradiction-dropped",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "newline-person-context",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "single-token-business-no-shield",
+   "skipped": "needs the NER model"
+  },
+  {
+   "name": "comma-main-hall-survives",
+   "text": "Table 5, Main hall reserved for the event.",
+   "must_absent": [],
+   "must_present": [
+    "Main hall reserved"
+   ],
+   "output": "Table 5, Main hall reserved for the event."
+  },
+  {
+   "name": "locality-direction-survives",
+   "text": "Our salon is in Bandra West near the station.",
+   "must_absent": [],
+   "must_present": [
+    "Bandra West"
+   ],
+   "output": "Our salon is in Bandra West near the station."
+  },
+  {
+   "name": "name-is-direction-surname",
+   "text": "Hi, my name is Anita West and I run a bakery.",
+   "must_absent": [
+    "Anita West"
+   ],
+   "must_present": [],
+   "output": "Hi, my name is [NAME] and I run a bakery."
+  },
+  {
+   "name": "city-bigram-survives",
+   "text": "We deliver across Navi Mumbai daily.",
+   "must_absent": [],
+   "must_present": [
+    "Navi Mumbai"
+   ],
+   "output": "We deliver across Navi Mumbai daily."
+  },
+  {
+   "name": "person-still-redacts",
+   "text": "My name is Anita Rao",
+   "must_absent": [
+    "Anita Rao"
+   ],
+   "must_present": [],
+   "output": "My name is [NAME]"
+  },
+  {
+   "name": "name-list-and-two-names",
+   "text": "Invoice Dana and Priya",
+   "must_absent": [
+    "Dana",
+    "Priya"
+   ],
+   "must_present": [],
+   "output": "Invoice [NAME] and [NAME]"
+  },
+  {
+   "name": "name-list-oxford-comma-three-names",
+   "text": "Invoice Dana, Priya, and Sam",
+   "must_absent": [
+    "Dana",
+    "Priya",
+    "Sam"
+   ],
+   "must_present": [],
+   "output": "Invoice [NAME], [NAME], and [NAME]"
+  },
+  {
+   "name": "name-list-with-lead-verb-preserved",
+   "text": "Email Dana and Priya about the invoice",
+   "must_absent": [
+    "Dana",
+    "Priya"
+   ],
+   "must_present": [
+    "Email",
+    "invoice"
+   ],
+   "output": "Email [NAME] and [NAME] about the invoice"
+  },
+  {
+   "name": "name-list-business-tail-sons-hardware-survives",
+   "text": "Please pay Anita Rao and Sons Hardware for the delivery.",
+   "must_absent": [
+    "Anita Rao"
+   ],
+   "must_present": [
+    "Sons Hardware"
+   ],
+   "output": "Please pay [NAME] and Sons Hardware for the delivery."
+  },
+  {
+   "name": "name-list-business-tail-associates-survives",
+   "text": "Send this to Priya Sharma and Associates for review.",
+   "must_absent": [
+    "Priya Sharma"
+   ],
+   "must_present": [
+    "Associates"
+   ],
+   "output": "Send this to [NAME] and Associates for review."
+  },
+  {
+   "name": "name-list-literal-and-sons-hardware-survives",
+   "text": "Sharma and Sons Hardware delivered the order.",
+   "must_absent": [],
+   "must_present": [
+    "Sharma and Sons Hardware delivered the order."
+   ],
+   "output": "Sharma and Sons Hardware delivered the order."
+  },
+  {
+   "name": "over-redaction-address-tail-keeps-the-day",
+   "text": "The parent, Deepak Menon, wants a slot at 221B Baker Street on Tuesday.",
+   "must_absent": [
+    "Deepak Menon",
+    "221B Baker Street"
+   ],
+   "must_present": [
+    "on Tuesday"
+   ],
+   "output": "The parent, [NAME], wants a slot at [ADDRESS] on Tuesday."
+  },
+  {
+   "name": "over-redaction-lead-verb-tell-survives",
+   "text": "Tell Arjun Nair the quote is ready.",
+   "must_absent": [
+    "Arjun Nair"
+   ],
+   "must_present": [
+    "Tell",
+    "the quote is ready"
+   ],
+   "output": "Tell [NAME] the quote is ready."
+  },
+  {
+   "name": "over-redaction-lead-verb-ask-and-address-tail",
+   "text": "Ask Priya Sharma to confirm 42 Baker Street for tomorrow morning.",
+   "must_absent": [
+    "Priya Sharma",
+    "42 Baker Street"
+   ],
+   "must_present": [
+    "Ask",
+    "for tomorrow morning"
+   ],
+   "output": "Ask [NAME] to confirm [ADDRESS] for tomorrow morning."
+  },
+  {
+   "name": "over-redaction-lead-verb-book-and-address-tail",
+   "text": "Book Anita Desai at 12 MG Road so she gets the 3pm slot.",
+   "must_absent": [
+    "Anita Desai",
+    "12 MG Road"
+   ],
+   "must_present": [
+    "Book",
+    "so she gets the 3pm slot"
+   ],
+   "output": "Book [NAME] at [ADDRESS] so she gets the 3pm slot."
+  },
+  {
+   "name": "over-redaction-address-tail-mid-sentence-and",
+   "text": "Send Rajesh Kumar the invoice at 17 Hill Street and copy me in.",
+   "must_absent": [
+    "Rajesh Kumar",
+    "17 Hill Street"
+   ],
+   "must_present": [
+    "Send",
+    "and copy me in"
+   ],
+   "output": "Send [NAME] the invoice at [ADDRESS] and copy me in."
+  },
+  {
+   "name": "over-redaction-address-tail-before",
+   "text": "Meet at 5 Rose Lane before the class starts.",
+   "must_absent": [
+    "5 Rose Lane"
+   ],
+   "must_present": [
+    "before the class starts"
+   ],
+   "output": "Meet at [ADDRESS] before the class starts."
+  },
+  {
+   "name": "over-redaction-genuine-address-tail-still-absorbed-apt",
+   "text": "Deliver to 17 Hill Street Apt 4B.",
+   "must_absent": [
+    "Hill Street",
+    "Apt 4B"
+   ],
+   "must_present": [],
+   "output": "Deliver to [ADDRESS]"
+  },
+  {
+   "name": "over-redaction-genuine-address-tail-still-absorbed-postcode",
+   "text": "Ship it to 42 Baker Street London NW1 6XE.",
+   "must_absent": [
+    "Baker Street",
+    "London"
+   ],
+   "must_present": [],
+   "output": "Ship it to [ADDRESS]"
+  },
+  {
+   "name": "under-redaction-guard-unit-number-after-with",
+   "text": "17 Hill Street with Unit 5.",
+   "must_absent": [
+    "Hill Street",
+    "Unit 5"
+   ],
+   "must_present": [],
+   "output": "[ADDRESS]"
+  },
+  {
+   "name": "under-redaction-guard-flat-number-after-with",
+   "text": "12 Elm Street with Flat 3B for the tenant.",
+   "must_absent": [
+    "Elm Street",
+    "Flat 3B"
+   ],
+   "must_present": [
+    "for the tenant"
+   ],
+   "output": "[ADDRESS] for the tenant."
+  },
+  {
+   "name": "under-redaction-guard-city-after-in",
+   "text": "5 Rose Lane in Leeds",
+   "must_absent": [
+    "Rose Lane",
+    "Leeds"
+   ],
+   "must_present": [],
+   "output": "[ADDRESS]"
+  },
+  {
+   "name": "under-redaction-guard-city-after-to",
+   "text": "Deliver 12 Elm Street to Manchester office.",
+   "must_absent": [
+    "Elm Street",
+    "Manchester"
+   ],
+   "must_present": [],
+   "output": "Deliver [ADDRESS]"
+  },
+  {
+   "name": "under-redaction-guard-locality-after-in-indian",
+   "text": "5 Church Street in Bandra",
+   "must_absent": [
+    "Church Street",
+    "Bandra"
+   ],
+   "must_present": [],
+   "output": "[ADDRESS]"
+  },
+  {
+   "name": "under-redaction-guard-landmark-after-near",
+   "text": "22 Park Avenue near St Mary's",
+   "must_absent": [
+    "Park Avenue",
+    "St Mary"
+   ],
+   "must_present": [],
+   "output": "[ADDRESS]"
+  }
+ ],
+ "floorCalls": [
+  {
+   "source": "test_redaction_eval:email-plain",
+   "input": "Reach me at owner@example.com for pricing.",
+   "output": "Reach me at [EMAIL] for pricing."
+  },
+  {
+   "source": "test_redaction_eval:email-plus-addressing",
+   "input": "Send invoices to billing+ap@example.co.in please.",
+   "output": "Send invoices to [EMAIL] please."
+  },
+  {
+   "source": "test_redaction_eval:phone-intl-spaced",
+   "input": "Call me on +91 98765 43210 anytime.",
+   "output": "Call me on [PHONE]anytime."
+  },
+  {
+   "source": "test_redaction_eval:phone-us-paren-dash",
+   "input": "You can reach the office at (415) 555-2671 during business hours.",
+   "output": "You can reach the office at [PHONE] during business hours."
+  },
+  {
+   "source": "test_redaction_eval:phone-us-dashed",
+   "input": "Call 415-555-2671 for support.",
+   "output": "Call [PHONE] for support."
+  },
+  {
+   "source": "test_redaction_eval:phone-us-dotted",
+   "input": "Fax us at 415.555.2671 anytime.",
+   "output": "Fax us at [PHONE] anytime."
+  },
+  {
+   "source": "test_redaction_eval:phone-intl-paren-cc",
+   "input": "International line: +1 (415) 555 2671.",
+   "output": "International line: [PHONE]."
+  },
+  {
+   "source": "test_redaction_eval:phone-std-dashed-landline",
+   "input": "Landline: 022-2604-1234 for the shop.",
+   "output": "Landline: [PHONE] for the shop."
+  },
+  {
+   "source": "test_redaction_eval:card-spaced",
+   "input": "Card on file: 4111 1111 1111 1111 for deposits.",
+   "output": "Card on file: [CARD]for deposits."
+  },
+  {
+   "source": "test_redaction_eval:card-dashed",
+   "input": "Card number 4111-1111-1111-1111 was charged.",
+   "output": "Card number [CARD]was charged."
+  },
+  {
+   "source": "test_redaction_eval:card-bare-16digit",
+   "input": "The 4111111111111111 card was charged to the account.",
+   "output": "The [CARD]card was charged to the account."
+  },
+  {
+   "source": "test_redaction_eval:ssn",
+   "input": "SSN on file: 123-45-6789 for verification.",
+   "output": "SSN on file: [ID] for verification."
+  },
+  {
+   "source": "test_redaction_eval:name-salutation-1",
+   "input": "I'm Priya Sharma, happy to help with your order.",
+   "output": "I'm [NAME], happy to help with your order."
+  },
+  {
+   "source": "test_redaction_eval:name-salutation-2",
+   "input": "My name is Rahul Mehta and I run the shop.",
+   "output": "My name is [NAME] and I run the shop."
+  },
+  {
+   "source": "test_redaction_eval:name-possessive",
+   "input": "Anita Desai's clinic opens at 9am.",
+   "output": "[NAME]'s clinic opens at 9am."
+  },
+  {
+   "source": "test_redaction_eval:name-labeled-single-token",
+   "input": "Owner: Deepak runs daily operations.",
+   "output": "Owner: [NAME] runs daily operations."
+  },
+  {
+   "source": "test_redaction_eval:name-labeled-contact-person",
+   "input": "Contact person: Anita Desai for billing questions.",
+   "output": "Contact person: [NAME] for billing questions."
+  },
+  {
+   "source": "test_redaction_eval:address-labeled-with-pin",
+   "input": "Address: 42 MG Road, Andheri, Mumbai 400053",
+   "output": "Address: [ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:address-labeled-street",
+   "input": "Address: 17 Hill Street near the market",
+   "output": "Address: [ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:address-freestanding",
+   "input": "Our office is at 1600 Amphitheatre Parkway near the tech park.",
+   "output": "Our office is at 1600 [NAME] near the tech park."
+  },
+  {
+   "source": "test_redaction_eval:regression-parenthesized-cc-phone",
+   "input": "Call (91) 98765-43210 for support.",
+   "output": "Call [PHONE] for support."
+  },
+  {
+   "source": "test_redaction_eval:regression-glued-pan",
+   "input": "Client details panFGHIJ5678K on file for KYC.",
+   "output": "Client details pan[ID] on file for KYC."
+  },
+  {
+   "source": "test_redaction_eval:regression-glued-card",
+   "input": "Card on file card4111111111111111 for this customer.",
+   "output": "Card on file card[CARD]for this customer."
+  },
+  {
+   "source": "test_redaction_eval:regression-repeated-person-mention",
+   "input": "Priya Sharma called this morning. Priya will follow up tomorrow.",
+   "output": "[NAME] called this morning. [NAME] will follow up tomorrow."
+  },
+  {
+   "source": "test_redaction_eval:name-run-middle-name-leak",
+   "input": "Dana Marie Whitfield owes 3,000",
+   "output": "[NAME] owes 3,000"
+  },
+  {
+   "source": "test_redaction_eval:name-run-three-word-leak",
+   "input": "Mary Jane Watson booked an appointment",
+   "output": "[NAME] booked an appointment"
+  },
+  {
+   "source": "test_redaction_eval:invoice-verb-preserved-no-surname-leak",
+   "input": "Invoice Dana Whitfield 3,000",
+   "output": "Invoice [NAME] 3,000"
+  },
+  {
+   "source": "test_redaction_eval:invoice-verb-preserved-lone-name",
+   "input": "Invoice Dana 3,000",
+   "output": "Invoice [NAME] 3,000"
+  },
+  {
+   "source": "test_redaction_eval:invoice-verb-preserved-f18-s3-acceptance-string",
+   "input": "Invoice Dana 3,000 for the bridal package",
+   "output": "Invoice [NAME] 3,000 for the bridal package"
+  },
+  {
+   "source": "test_redaction_eval:invoice-verb-preserved-full-name-with-trailing-clause",
+   "input": "Invoice Dana Whitfield 3,000 for the bridal package",
+   "output": "Invoice [NAME] 3,000 for the bridal package"
+  },
+  {
+   "source": "test_redaction_eval:bill-collision-still-fully-redacts",
+   "input": "Bill Smith owes 3,000",
+   "output": "[NAME] owes 3,000"
+  },
+  {
+   "source": "test_redaction_eval:email-verb-preserved-name-redacts",
+   "input": "Email Dana Whitfield about booking",
+   "output": "Email [NAME] about booking"
+  },
+  {
+   "source": "test_redaction_eval:call-verb-preserved-titled-name-redacts",
+   "input": "Call Mrs Sharma tomorrow",
+   "output": "Call [NAME] tomorrow"
+  },
+  {
+   "source": "test_redaction_eval:invoice-verb-preserved-business-survives",
+   "input": "Invoice Grace Community Church",
+   "output": "Invoice Grace Community Church"
+  },
+  {
+   "source": "test_redaction_eval:mark-not-a-safe-verb-still-redacts",
+   "input": "Mark Anthony called about his invoice",
+   "output": "[NAME] called about his invoice"
+  },
+  {
+   "source": "test_redaction_eval:sue-not-a-safe-verb-still-redacts",
+   "input": "Sue Chen booked an appointment",
+   "output": "[NAME] booked an appointment"
+  },
+  {
+   "source": "test_redaction_eval:name-run-four-word",
+   "input": "Dana Marie Anne Whitfield owes 3,000",
+   "output": "[NAME] [NAME] owes 3,000"
+  },
+  {
+   "source": "test_redaction_eval:biz-grace-community-church",
+   "input": "Grace Community Church is doing well",
+   "output": "Grace Community Church is doing well"
+  },
+  {
+   "source": "test_redaction_eval:cso-block-name-run-trailing-biz-noun",
+   "input": "Ravi Kumar Sharma Salon opens at 9",
+   "output": "[NAME] Salon opens at 9"
+  },
+  {
+   "source": "test_redaction_eval:cso-block-name-run-trailing-biz-noun-2",
+   "input": "Contact Dana Marie Whitfield Company for details",
+   "output": "Contact [NAME] Company for details"
+  },
+  {
+   "source": "test_redaction_eval:name-list-two-names-and",
+   "input": "Invoice Dana and Priya",
+   "output": "Invoice [NAME] and [NAME]"
+  },
+  {
+   "source": "test_redaction_eval:name-list-three-names-oxford-comma",
+   "input": "Invoice Dana, Priya, and Sam",
+   "output": "Invoice [NAME], [NAME], and [NAME]"
+  },
+  {
+   "source": "test_redaction_eval:name-list-two-names-and-trailing-clause",
+   "input": "Email Dana and Priya about the invoice",
+   "output": "Email [NAME] and [NAME] about the invoice"
+  },
+  {
+   "source": "test_redaction_eval:name-list-business-and-survives",
+   "input": "Sharma and Sons Hardware delivered the order",
+   "output": "Sharma and Sons Hardware delivered the order"
+  },
+  {
+   "source": "test_redaction_eval:biz-fresh-farms-produce",
+   "input": "Our supplier Fresh Farms Produce delivers on Mondays.",
+   "output": "Our supplier Fresh Farms Produce delivers on Mondays."
+  },
+  {
+   "source": "test_redaction_eval:biz-bloom-beauty-studio",
+   "input": "Welcome to Bloom Beauty Studio, we open at 10am.",
+   "output": "Welcome to Bloom Beauty Studio, we open at 10am."
+  },
+  {
+   "source": "test_redaction_eval:biz-acme-salon",
+   "input": "Acme Salon is located downtown.",
+   "output": "Acme Salon is located downtown."
+  },
+  {
+   "source": "test_redaction_eval:biz-sharma-and-sons-hardware",
+   "input": "Sharma & Sons Hardware is my family business, started decades ago.",
+   "output": "Sharma & Sons Hardware is my family business, started decades ago."
+  },
+  {
+   "source": "test_redaction_eval:biz-patel-brothers-grocery",
+   "input": "Patel Brothers Grocery restocks every Friday.",
+   "output": "Patel Brothers Grocery restocks every Friday."
+  },
+  {
+   "source": "test_redaction_eval:biz-bakery-called-sugar-loop",
+   "input": "I run a small home-based cupcake bakery called Sugar Loop.",
+   "output": "I run a small home-based cupcake bakery called Sugar Loop."
+  },
+  {
+   "source": "test_redaction_eval:biz-brand-is-nimbus",
+   "input": "my brand is Nimbus and we sell eco-friendly bags.",
+   "output": "my brand is Nimbus and we sell eco-friendly bags."
+  },
+  {
+   "source": "test_redaction_eval:biz-owner-label-deepak-auto-service",
+   "input": "Owner: Deepak Auto Service handles all repairs.",
+   "output": "Owner: Deepak Auto Service handles all repairs."
+  },
+  {
+   "source": "test_redaction_eval:biz-mehta-textiles",
+   "input": "Mehta Textiles supplies fabric to local tailors.",
+   "output": "Mehta Textiles supplies fabric to local tailors."
+  },
+  {
+   "source": "test_redaction_eval:biz-person-and-business-share-token",
+   "input": "I'm Ravi Patel and I run Patel Brothers Grocery",
+   "output": "I'm [NAME] and I run Patel Brothers Grocery"
+  },
+  {
+   "source": "test_redaction_eval:city-name-survives",
+   "input": "I run a small tiffin service in Pune, mostly office lunches.",
+   "output": "I run a small tiffin service in Pune, mostly office lunches."
+  },
+  {
+   "source": "test_redaction_eval:comma-street-address",
+   "input": "We are at 12, MG Road, Camp, Pune 411001.",
+   "output": "We are at [ADDRESS], Camp, Pune [ADDRESS]."
+  },
+  {
+   "source": "test_redaction_eval:interactive-default-no-ner",
+   "input": "I'm Priya Sharma, reach me at priya@example.com. My brand is Nimbus.",
+   "output": "I'm [NAME], reach me at [EMAIL]. My brand is Nimbus."
+  },
+  {
+   "source": "test_redaction_eval:comma-main-hall-survives",
+   "input": "Table 5, Main hall reserved for the event.",
+   "output": "Table 5, Main hall reserved for the event."
+  },
+  {
+   "source": "test_redaction_eval:locality-direction-survives",
+   "input": "Our salon is in Bandra West near the station.",
+   "output": "Our salon is in Bandra West near the station."
+  },
+  {
+   "source": "test_redaction_eval:name-is-direction-surname",
+   "input": "Hi, my name is Anita West and I run a bakery.",
+   "output": "Hi, my name is [NAME] and I run a bakery."
+  },
+  {
+   "source": "test_redaction_eval:city-bigram-survives",
+   "input": "We deliver across Navi Mumbai daily.",
+   "output": "We deliver across Navi Mumbai daily."
+  },
+  {
+   "source": "test_redaction_eval:person-still-redacts",
+   "input": "My name is Anita Rao",
+   "output": "My name is [NAME]"
+  },
+  {
+   "source": "test_redaction_eval:name-list-business-tail-sons-hardware-survives",
+   "input": "Please pay Anita Rao and Sons Hardware for the delivery.",
+   "output": "Please pay [NAME] and Sons Hardware for the delivery."
+  },
+  {
+   "source": "test_redaction_eval:name-list-business-tail-associates-survives",
+   "input": "Send this to Priya Sharma and Associates for review.",
+   "output": "Send this to [NAME] and Associates for review."
+  },
+  {
+   "source": "test_redaction_eval:name-list-literal-and-sons-hardware-survives",
+   "input": "Sharma and Sons Hardware delivered the order.",
+   "output": "Sharma and Sons Hardware delivered the order."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-address-tail-keeps-the-day",
+   "input": "The parent, Deepak Menon, wants a slot at 221B Baker Street on Tuesday.",
+   "output": "The parent, [NAME], wants a slot at [ADDRESS] on Tuesday."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-lead-verb-tell-survives",
+   "input": "Tell Arjun Nair the quote is ready.",
+   "output": "Tell [NAME] the quote is ready."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-lead-verb-ask-and-address-tail",
+   "input": "Ask Priya Sharma to confirm 42 Baker Street for tomorrow morning.",
+   "output": "Ask [NAME] to confirm [ADDRESS] for tomorrow morning."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-lead-verb-book-and-address-tail",
+   "input": "Book Anita Desai at 12 MG Road so she gets the 3pm slot.",
+   "output": "Book [NAME] at [ADDRESS] so she gets the 3pm slot."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-address-tail-mid-sentence-and",
+   "input": "Send Rajesh Kumar the invoice at 17 Hill Street and copy me in.",
+   "output": "Send [NAME] the invoice at [ADDRESS] and copy me in."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-address-tail-before",
+   "input": "Meet at 5 Rose Lane before the class starts.",
+   "output": "Meet at [ADDRESS] before the class starts."
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-genuine-address-tail-still-absorbed-apt",
+   "input": "Deliver to 17 Hill Street Apt 4B.",
+   "output": "Deliver to [ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:over-redaction-genuine-address-tail-still-absorbed-postcode",
+   "input": "Ship it to 42 Baker Street London NW1 6XE.",
+   "output": "Ship it to [ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:under-redaction-guard-unit-number-after-with",
+   "input": "17 Hill Street with Unit 5.",
+   "output": "[ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:under-redaction-guard-flat-number-after-with",
+   "input": "12 Elm Street with Flat 3B for the tenant.",
+   "output": "[ADDRESS] for the tenant."
+  },
+  {
+   "source": "test_redaction_eval:under-redaction-guard-city-after-in",
+   "input": "5 Rose Lane in Leeds",
+   "output": "[ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:under-redaction-guard-city-after-to",
+   "input": "Deliver 12 Elm Street to Manchester office.",
+   "output": "Deliver [ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:under-redaction-guard-locality-after-in-indian",
+   "input": "5 Church Street in Bandra",
+   "output": "[ADDRESS]"
+  },
+  {
+   "source": "test_redaction_eval:under-redaction-guard-landmark-after-near",
+   "input": "22 Park Avenue near St Mary's",
+   "output": "[ADDRESS]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Hi, I run Bloom Beauty Studio, a hair salon in Bandra, Mumbai. I'm Priya Sharma — reach me at priya.sharma@example.com or +91 98765 43210. I want help getting more bookings.",
+   "output": "Hi, I run Bloom Beauty Studio, a hair salon in Bandra, Mumbai. I'm [NAME] — reach me at [EMAIL] or [PHONE] I want help getting more bookings."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "I run a small home-based cupcake bakery called Sugar Loop, and I need help with marketing.",
+   "output": "I run a small home-based cupcake bakery called Sugar Loop, and I need help with marketing."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "my business is called Sugar Loop",
+   "output": "my business is called Sugar Loop"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "our accountant, called Rahul Mehta, handles this",
+   "output": "our accountant, called [NAME], handles this"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "a supplier named John Davies delivers Mondays",
+   "output": "a supplier named [NAME] delivers Mondays"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "I'm Priya Sharma, reach me at priya@x.com",
+   "output": "I'm [NAME], reach me at [EMAIL]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "my name is Rahul Mehta",
+   "output": "my name is [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "please contact Anita Desai",
+   "output": "please contact [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "His PAN is ABCPS1234K for verification.",
+   "output": "His PAN is [ID] for verification."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "SSN on file: 123-45-6789.",
+   "output": "SSN on file: [ID]."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Card on file: 4111 1111 1111 1111.",
+   "output": "Card on file: [CARD]."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "our supplier Fresh Farms Produce sends deliveries on Mondays",
+   "output": "our supplier Fresh Farms Produce sends deliveries on Mondays"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Sunrise Foods",
+   "output": "Sunrise Foods"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Owner: Priya Sharma. Notes: Priya prefers evening appointments.",
+   "output": "Owner: [NAME]. Notes: [NAME] prefers evening appointments."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Our supplier Fresh Farms Produce is reliable. Fresh Farms Produce delivers Mondays.",
+   "output": "Our supplier Fresh Farms Produce is reliable. Fresh Farms Produce delivers Mondays."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Card on file card4111111111111111 for this customer",
+   "output": "Card on file card[CARD]for this customer"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Client details panFGHIJ5678K on file",
+   "output": "Client details pan[ID] on file"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Card: 4111 1111 1111 1111",
+   "output": "Card: [CARD]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "our order ref 12345678901234567890 shipped",
+   "output": "our order ref [LONGNUM] shipped"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Shetty Family Grocery",
+   "output": "Shetty Family Grocery"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Balance due: ₹4,500.",
+   "output": "Balance due: ₹4,500."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "45 repeat clients.",
+   "output": "45 repeat clients."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Founded in 2026.",
+   "output": "Founded in 2026."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "(2) locations",
+   "output": "(2) locations"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "(415) 555-2671",
+   "output": "[PHONE]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "+1 (628) 555-0147",
+   "output": "[PHONE]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "415-555-9182",
+   "output": "[PHONE]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "(91) 98765-43210",
+   "output": "[PHONE]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "022-2604-1234",
+   "output": "[PHONE]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "9876543210",
+   "output": "[PHONE]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "2026-07-03",
+   "output": "2026-07-03"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "order ref 12345678901234567890 shipped",
+   "output": "order ref [LONGNUM] shipped"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Address: 42 MG Road, Andheri West, Mumbai 400058",
+   "output": "Address: [ADDRESS]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "we are at 17 Hill Street near the park",
+   "output": "we are at [ADDRESS]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Manager: Rajesh",
+   "output": "Manager: [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Contact person: Anita Desai",
+   "output": "Contact person: [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Deepak Auto Service",
+   "output": "Deepak Auto Service"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Owner: Deepak Auto Service",
+   "output": "Owner: Deepak Auto Service"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "total 450000 this quarter",
+   "output": "total 450000 this quarter"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "I run Priya Stitches, a tailoring shop.",
+   "output": "I run Priya Stitches, a tailoring shop."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "we own Bloom Corner and love it.",
+   "output": "we own Bloom Corner and love it."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "my business is Sugar Bloom.",
+   "output": "my business is Sugar Bloom."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "our business is Cedar Point.",
+   "output": "our business is Cedar Point."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Corner Basket is our grocery store.",
+   "output": "Corner Basket is our grocery store."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Sugar Bloom is my bakery.",
+   "output": "Sugar Bloom is my bakery."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "we are Silver Fern, a local cafe.",
+   "output": "we are [NAME], a local cafe."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "my accountant is Rahul Mehta",
+   "output": "my accountant is [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "our supplier is Anita Desai",
+   "output": "our supplier is [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "my business partner is Rahul Mehta",
+   "output": "my business partner is [NAME]"
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Hi, we are Rahul Mehta and Priya Sharma, we run a small bakery in Mumbai.",
+   "output": "Hi, we are [NAME] and [NAME], we run a small bakery in Mumbai."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "I run Priya Sharma, our newest hire.",
+   "output": "I run [NAME], our newest hire."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Priya Sharma is my salon manager.",
+   "output": "[NAME] is my salon manager."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Rahul Mehta is our clinic assistant.",
+   "output": "[NAME] is our clinic assistant."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Anita Verma is my grocery store cashier.",
+   "output": "[NAME] is my grocery store cashier."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "Deepak Kumar is our garage supervisor.",
+   "output": "[NAME] is our garage supervisor."
+  },
+  {
+   "source": "test_intake_redaction",
+   "input": "we own Rahul Mehta and Priya Sharma",
+   "output": "we own [NAME] and [NAME]"
+  }
+ ]
+}

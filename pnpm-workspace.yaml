@@ -1,0 +1,7 @@
+# The suite is its own pnpm workspace root, separate from the repository around it.
+packages:
+  - "."
+allowBuilds:
+  esbuild: true
+  sharp: false
+  unrs-resolver: false
