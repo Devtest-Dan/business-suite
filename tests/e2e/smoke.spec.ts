@@ -9,7 +9,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Shared with the other specs in the same run (tasks.spec.ts signs in as this owner).
 const run = (process.env.SUITE_E2E_RUN ??= Date.now().toString(36));
-const owner = { name: "Olive Owner", email: `owner-${run}@example.test`, password: "owner password long enough" };
+const owner = { name: "Olive Owner", email: "owner@example.test", password: "owner password long enough" };
 const member = { name: "Max Member", email: `member-${run}@example.test`, password: "member password long enough" };
 const CSV = [
   "title,body,pinned,key",

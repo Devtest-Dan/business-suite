@@ -436,7 +436,7 @@ export interface DealValues {
   ownerId: string | null;
 }
 
-export async function saveDeal(q: Q, input: DealValues, by: Person, id: string | null): Promise<Deal> {
+export async function saveDeal(q: Q, input: DealValues, by: Person, id: string | null, options: { sourceKey?: string } = {}): Promise<Deal> {
   await assertActiveUser(q, input.ownerId);
   const [stage] = await q.select().from(customerStages).where(eq(customerStages.id, input.stageId));
   if (!stage) throw new UserError("That pipeline stage no longer exists. Reload the page and pick another.");
@@ -460,7 +460,7 @@ export async function saveDeal(q: Q, input: DealValues, by: Person, id: string |
     await tellNewOwner(by, row.ownerId, before.ownerId, `the deal ${row.title}`, `${BASE}/deals/${row.id}`);
     return row;
   }
-  const [row] = (await q.insert(customerDeals).values({ ...values, createdBy: by.id }).returning()) as Deal[];
+  const [row] = (await q.insert(customerDeals).values({ ...values, createdBy: by.id, sourceKey: options.sourceKey ?? null }).returning()) as Deal[];
   await audit({ actor: userActor(by), action: "customers.deal_added", module: MODULE_ID, target: { type: "deal", id: row.id }, summary: `${by.name} added the deal "${row.title}" in ${stage.name}.` }, q);
   await tellNewOwner(by, row.ownerId, null, `the deal ${row.title}`, `${BASE}/deals/${row.id}`);
   return row;
@@ -829,4 +829,40 @@ export async function customerHistory(ctx: ModuleContext, s: { contactId?: strin
     openFollowUps: followUps.map((f) => ({ id: f.id, title: f.title, dueOn: f.dueOn, assignee: f.assigneeName })),
     timeline: events.map((e) => ({ kind: e.kind, at: iso(e.occurredAt), by: e.authorName, deal: e.dealTitle, text: e.body.slice(0, 600) })),
   };
+}
+
+/** The contacts' and companies' names, for the assistant's name references (newest first). */
+export async function knownCustomerNames(ctx: ModuleContext): Promise<string[]> {
+  if (!ctx.can(P.access)) return [];
+  const [contacts, companies] = await Promise.all([
+    ctx.db.select({ name: customerContacts.name }).from(customerContacts).orderBy(desc(customerContacts.updatedAt)).limit(5000),
+    ctx.db.select({ name: customerCompanies.name }).from(customerCompanies).orderBy(desc(customerCompanies.updatedAt)).limit(5000),
+  ]);
+  return [...contacts, ...companies].map((r) => r.name);
+}
+
+/**
+ * How given deals stand now (stage, open/won/lost, value, contact), for other
+ * apps through the `deal_outcomes` read tool: Leads reads whether a converted
+ * lead's deal was won. Unknown ids are left out.
+ */
+export async function dealOutcomes(q: Q, ids: string[]) {
+  const wanted = [...new Set(ids)].filter((i) => /^[0-9a-f-]{36}$/i.test(i));
+  if (!wanted.length) return [];
+  const rows = await q
+    .select({
+      id: customerDeals.id,
+      title: customerDeals.title,
+      contactId: customerDeals.contactId,
+      contactName: customerContacts.name,
+      stage: customerStages.name,
+      status: customerStages.kind,
+      valueCents: customerDeals.valueCents,
+      closedAt: customerDeals.closedAt,
+    })
+    .from(customerDeals)
+    .innerJoin(customerStages, eq(customerStages.id, customerDeals.stageId))
+    .leftJoin(customerContacts, eq(customerContacts.id, customerDeals.contactId))
+    .where(inArray(customerDeals.id, wanted));
+  return rows.map((r) => ({ ...r, value: formatMoney(r.valueCents) || null, closedAt: r.closedAt ? r.closedAt.toISOString() : null }));
 }

@@ -6,9 +6,11 @@ import {
   assertSubjectExists,
   BASE,
   customerHistory,
+  dealOutcomes,
   dealsByStage,
   deliverDueReminders,
   findCustomers,
+  knownCustomerNames,
   formatMoney,
   listFollowUps,
   listStages,
@@ -19,6 +21,7 @@ import {
   todayIn,
   followUpSubjectUrl,
 } from "./data";
+import { applyDealWithContact } from "./deal-with-contact";
 import { applyFollowUp } from "./follow-ups";
 import { applyImportRow, previewImportRow } from "./import";
 import { CompaniesPage, CompanyPage, EditCompanyPage, NewCompanyPage } from "./pages/companies";
@@ -28,7 +31,18 @@ import { FollowUpsPage } from "./pages/follow-ups";
 import { ImportPage } from "./pages/import";
 import { SettingsPage } from "./pages/settings";
 import { seedExamples } from "./seed";
-import { dealStageInput, followUpInput, importRowInput, noteInput, type DealStageInput, type FollowUpInput, type ImportRowInput, type NoteInput } from "./schemas";
+import {
+  dealStageInput,
+  dealWithContactInput,
+  followUpInput,
+  importRowInput,
+  noteInput,
+  type DealStageInput,
+  type DealWithContactInput,
+  type FollowUpInput,
+  type ImportRowInput,
+  type NoteInput,
+} from "./schemas";
 import { tasksInstalled } from "./tasks-link";
 
 const subjectLabel = (s: { about: string; contactId: string | null; companyId: string | null; dealId: string | null }) =>
@@ -181,7 +195,18 @@ export const customers = defineModule({
         return { targetId: deal.id, summary: changed ? `Moved “${deal.title}” to ${stage.name}` : `“${deal.title}” was already in ${stage.name}` };
       },
     }),
+    defineAction<DealWithContactInput>({
+      name: "create_deal",
+      label: "Add a deal with its contact",
+      permission: P.edit,
+      input: dealWithContactInput,
+      preview: (d) =>
+        `Add the deal “${d.title}” in the first open stage for ${d.contact.name}${d.contact.email ? ` <${d.contact.email}>` : ""} (merged into an existing contact with the same email, phone or name, if there is one)${d.source ? `. Source: ${d.source}` : ""}`,
+      sideEffects: "database",
+      apply: applyDealWithContact,
+    }),
   ],
+  knownNames: knownCustomerNames,
   aiTools: [
     defineReadTool<{ query: string }>({
       name: "find_customers",
@@ -217,6 +242,13 @@ export const customers = defineModule({
       permission: P.access,
       input: z.object({}),
       run: async (ctx) => (await dealsByStage(ctx.db)).map((s) => ({ stage: s.name, kind: s.kind, deals: s.deals, totalValue: formatMoney(s.valueCents) })),
+    }),
+    defineReadTool<{ dealIds: string[] }>({
+      name: "deal_outcomes",
+      description: "How given deals stand now, by id: stage, status (open, won or lost), value, closing date and contact. Other apps use it to see how a lead turned out.",
+      permission: P.access,
+      input: z.object({ dealIds: z.array(z.string().uuid()).min(1).max(500) }),
+      run: async (ctx, { dealIds }) => dealOutcomes(ctx.db, dealIds),
     }),
     { kind: "write", name: "add_customer_note", description: "Add a note (or a logged call, email or meeting) to a contact's, company's or deal's timeline. Give the id and, in `about`, the name.", action: "add_note" },
     { kind: "write", name: "add_customer_notes", description: "Add several timeline notes at once, as one approval.", action: "add_note", batch: true },

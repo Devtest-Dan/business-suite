@@ -19,10 +19,12 @@ write_files:
     permissions: "0600"
     content: |
       # CHANGE: the release address and its SHA-256, exactly as you were given them.
-      SUITE_RELEASE_URL=https://example.com/business-suite-0.1.0.tar.gz
+      SUITE_RELEASE_URL=https://example.com/business-suite-0.1.1.tar.gz
       SUITE_RELEASE_SHA256=paste-the-sha256-here
-      # CHANGE: a code only you know. The first-run page asks for it, so nobody
-      # else can claim your suite before you open it.
+      # CHANGE: a code only you know, at least 8 characters. The first-run page
+      # asks for it, so nobody else can claim your suite before you open it.
+      # Left as this example (or too short), the install makes a random code
+      # instead: it is at the end of /var/log/business-suite-install.log.
       SUITE_SETUP_CODE=choose-a-code-only-you-know
       # Optional: your domain (its DNS A record must point at this server's IP).
       SUITE_DOMAIN=

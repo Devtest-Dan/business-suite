@@ -244,6 +244,8 @@ export interface MessageView {
   deleted: boolean;
   pinned: boolean;
   via: "user" | "ai" | "import";
+  /** The name of the app that posted it through Chat's action (e.g. "Tasks"), if one did. */
+  viaApp: string | null;
   cseq: number;
   seq: number;
   reactions: ReactionView[];
@@ -269,6 +271,7 @@ const messageColumns = {
   deletedAt: chatMessages.deletedAt,
   pinnedAt: chatMessages.pinnedAt,
   via: chatMessages.via,
+  viaApp: chatMessages.viaApp,
   cseq: chatMessages.cseq,
   seq: chatMessages.seq,
 };
@@ -324,6 +327,7 @@ function toView(r: MessageSelect, reactions: ReactionView[]): MessageView {
     deleted,
     pinned: Boolean(r.pinnedAt) && !deleted,
     via: r.via,
+    viaApp: r.viaApp,
     cseq: r.cseq,
     seq: r.seq,
     reactions: deleted ? [] : reactions,

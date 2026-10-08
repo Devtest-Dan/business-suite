@@ -10,6 +10,7 @@ import { docs } from "./docs/manifest";
 import { customers } from "./customers/manifest";
 import { assistant } from "./assistant/manifest";
 import { chat } from "./chat/manifest";
+import { funnel } from "./funnel/manifest";
 
 export const modules: ModuleManifest[] = [
   announcements,
@@ -18,4 +19,5 @@ export const modules: ModuleManifest[] = [
   customers,
   assistant,
   chat,
+  funnel,
 ];

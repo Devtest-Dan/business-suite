@@ -21,12 +21,17 @@ set_env() {
   fi
 }
 
+# docker compose lets the caller's environment override --env-file: take every
+# name in .env out of the environment, so .env is what runs (see install.sh).
+env_unsets() { sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/-u \1/p' "$ENV_FILE"; }
+
 # compose [-v VERSION] args...: docker compose for the release folder of VERSION (default: the current one).
 compose() {
   local version
   version="$(get_env SUITE_VERSION)"
   if [[ "${1:-}" == "-v" ]]; then version="$2"; shift 2; fi
-  SUITE_VERSION="$version" docker compose --project-name business-suite --env-file "$ENV_FILE" -f "$SUITE_HOME/releases/$version/deploy/docker-compose.yml" "$@"
+  # shellcheck disable=SC2046
+  env $(env_unsets) SUITE_VERSION="$version" docker compose --project-name business-suite --env-file "$ENV_FILE" -f "$SUITE_HOME/releases/$version/deploy/docker-compose.yml" "$@"
 }
 
 wait_healthy() {

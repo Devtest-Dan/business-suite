@@ -75,10 +75,22 @@ export async function approvalDecided(approvalId: string, decidedBy: Viewer, req
 
 // ── Web Push ─────────────────────────────────────────────────────────────────
 
-/** The VAPID key pair, made on first use and kept in settings (private half sealed). */
+/**
+ * The VAPID key pair, made on first use and kept in settings (private half sealed).
+ * When the stored half cannot be opened (a restore onto a server with a different
+ * SUITE_SECRET_KEY), a new pair is made and the old phone subscriptions, which only
+ * work with the old pair, are forgotten: each person switches push off and on again.
+ */
 export async function vapidKeys(): Promise<{ publicKey: string; privateKey: string }> {
   const stored = await getSetting("vapid");
-  if (stored) return { publicKey: stored.publicKey, privateKey: unseal(stored.privateKey) };
+  if (stored) {
+    try {
+      return { publicKey: stored.publicKey, privateKey: unseal(stored.privateKey) };
+    } catch {
+      console.warn("[push] the stored push key cannot be opened with this server's SUITE_SECRET_KEY; making a new one. Phones must switch push off and on again.");
+      await db().delete(pushSubscriptions);
+    }
+  }
   const keys = webpush.generateVAPIDKeys();
   await setSetting("vapid", { publicKey: keys.publicKey, privateKey: seal(keys.privateKey) }, null);
   return keys;

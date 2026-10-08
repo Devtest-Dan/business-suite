@@ -6,6 +6,7 @@
     "docs",
     "customers",
     "assistant",
-    "chat"
+    "chat",
+    "funnel"
   ]
 }

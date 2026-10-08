@@ -14,6 +14,7 @@ import { chatChannels, chatMessages } from "@/modules/chat/schema";
 import { eventStream } from "@/modules/chat/stream";
 import { summarise, transcript } from "@/modules/chat/summarise";
 import { planSlackImport } from "@/modules/chat/slack-import";
+import { modules } from "@/modules/registry";
 import { makeZip } from "./zip-fixture";
 import { countRows, makeUser, resetDb } from "./helpers";
 
@@ -248,13 +249,43 @@ describe("chat (real Postgres)", () => {
     const again = await approve(r.approvalId!, owner);
     expect([first.appliedNow, again.appliedNow]).toEqual([1, 0]);
     const [m] = (await listMessages(db(), owner, ch.id)).messages;
-    expect(m).toMatchObject({ body: "Reminder: stock count at 4", via: "ai", authorName: "Olive" });
+    expect(m).toMatchObject({ body: "Reminder: stock count at 4", via: "ai", viaApp: null, authorName: "Olive" });
 
     const denied = await propose({ action: "chat.post_message", source: "ai", requestedBy: max, items: [{ channel: "secret", text: "hi" }], keys: ["ai:call-2:0"] });
     const report = await approve(denied.approvalId!, owner);
     expect(report.failedNow).toBe(1);
     expect(report.failures[0].error).toMatch(/cannot see a channel/);
     expect((await listMessages(db(), owner, secret.id)).messages).toHaveLength(0);
+  });
+
+  it("a post another app makes through Chat's action says which app sent it, not the assistant", async () => {
+    const owner = await makeUser("owner", "Olive");
+    const ch = await createChannel(db(), owner, { name: "jobs", topic: "", private: false });
+    const action = modules.find((m) => m.id === "chat")!.actions!.find((a) => a.name === "post_message")!;
+    const result = await db().transaction((tx) =>
+      action.apply(
+        { tx, moduleId: "chat", approvalId: "tasks-done", source: "ai", dedupeKey: "tasks:job-1", approver: owner, requestedBy: owner, business: { name: "Harbor Lane", timezone: "UTC" }, calledBy: "tasks" },
+        action.input.parse({ channel: "#jobs", text: "Done: replace the boiler at 12 Elm St" }) as never,
+      ),
+    );
+    await result.after?.();
+    const [m] = (await listMessages(db(), owner, ch.id)).messages;
+    expect(m).toMatchObject({ body: "Done: replace the boiler at 12 Elm St", via: "user", viaApp: "Tasks", authorName: "Olive" });
+  });
+
+  it("an app that proposes Chat's post through the ledger with calledBy is named on the post; without it there is no label", async () => {
+    const owner = await makeUser("owner", "Olive");
+    const ch = await createChannel(db(), owner, { name: "jobs", topic: "", private: false });
+    const post = (text: string, key: string, calledBy?: string) =>
+      propose({ action: "chat.post_message", source: "user", requestedBy: owner, items: [{ channel: "jobs", text }], keys: [key], ...(calledBy ? { calledBy } : {}) });
+    const viaTasks = await post("Done: service the boiler (Boiler jobs), by Olive", "tasks-done:t1", "tasks");
+    expect((await approve(viaTasks.approvalId!, owner)).appliedNow).toBe(1);
+    const plain = await post("Back at 3", "user:1");
+    await approve(plain.approvalId!, owner);
+    const messages = (await listMessages(db(), owner, ch.id)).messages;
+    expect(messages.find((m) => m.body.startsWith("Done:"))).toMatchObject({ via: "user", viaApp: "Tasks" });
+    expect(messages.find((m) => m.body === "Back at 3")).toMatchObject({ via: "user", viaApp: null });
+    await expect(post("x", "user:2", "no-such-app")).rejects.toThrow(/No app "no-such-app"/);
   });
 
   it("a Slack export is one batch approval: channels made once, threads kept, never duplicated", async () => {

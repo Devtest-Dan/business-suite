@@ -153,12 +153,15 @@ those.
 Go only through the other app's registered write actions, and only when that
 app is installed and switched on: `findModule("<id>")` (in this build) plus
 `enabledModules()` (switched on). Never import its tables or code. From a
-page, `propose({ action: "<other id>.<action>", source: "user", ... })`, then
+page, `propose({ action: "<other id>.<action>", source: "user", calledBy: MODULE_ID, ... })`, then
 `approve()` at once if `canDecide()` says the person may; otherwise it waits in
 Approvals. Inside your own approved `apply`, you may call the other action's
 `apply` with the same `ctx` (in a savepoint: `ctx.tx.transaction(...)`), since
-the approval already covered it. `modules/customers/follow-ups.ts` (a follow-up
-becomes a task in the Tasks app) shows both.
+the approval already covered it; set `calledBy: MODULE_ID` on that context.
+Either way the other app's `apply` sees `ctx.calledBy`, so it can say where the
+record came from (Chat then labels a post "from Tasks"; without `calledBy` a
+person's post has no label, and only the assistant's say "drafted by the assistant"). `modules/customers/follow-ups.ts`
+(a follow-up becomes a task in the Tasks app) shows both.
 
 ## 7. AI read tools
 
@@ -174,8 +177,16 @@ defineReadTool<{ query: string }>({
 
 Return small, plain JSON (ids, names, dates as ISO strings); the result is
 cut at 8,000 characters. The text is redacted before it is sent when the
-owner has redaction on, so do not rely on names surviving the round trip:
-return ids too.
+owner has redaction on. Names the suite knows (team members, plus every
+app's `knownNames`) leave as references such as `[name:kqxzbtpa]`, and the
+suite puts the real name back into a tool's input before `run` sees it, so a
+lookup by name works. Other names, emails and addresses become placeholders
+such as [person], so return ids too.
+
+If your app keeps records of people or organisations (customers, suppliers,
+patients' guardians), add `knownNames: (ctx) => ...` to the manifest: the
+names the viewer may see, newest first, a few thousand at most
+(`knownCustomerNames` in `modules/customers/data.ts`).
 
 ## 7a. HTTP endpoints (`api`), when a page or action cannot do it
 
@@ -221,7 +232,8 @@ counts). The Assistant app uses them for the owner's monthly limit.
 
 An app never imports another app's code. To act in another app, find it
 among the switched-on modules (`enabledModules()`), take one of its
-registered `actions`, and `propose()` it with `source: "user"` and a dedupe
+registered `actions`, and `propose()` it with `source: "user"`, `calledBy: MODULE_ID`
+(your app's id, so the record can say which app sent it) and a dedupe
 key (so a double click does nothing twice). If the person may decide it
 (`canDecide`), `approve()` it straight away; otherwise it waits in Approvals.
 Hide the menu item when the app is not installed. See
@@ -236,6 +248,7 @@ truth; add a unit test that your payload parses against them, as
 | --- | --- | --- |
 | tasks | `create_task` (`modules/tasks/schemas.ts`, `taskInput`) | `project` (name or id, required), `createProjectIfMissing: true` to file into your own team project (Customers uses "Customer follow-ups", chat "From chat"), `title`, `description`, optional `dueOn`, `assignees`, and `sourceLabel` / `sourceUrl` (a path inside the suite) linking back |
 | docs | `create_page` (`modules/docs/schemas.ts`, `createPageInput`) | `title`, `body` (Markdown), optional `spaceId` (default: the oldest team space), `note` |
+| customers | `create_deal` (`modules/customers/schemas.ts`, `dealWithContactInput`) | `title`, `contact` (as Customers takes a contact: `name`, `email`, `phone`, `companyName`, …; merged into an existing contact with the same email, phone or name), optional `valueCents`, `notes`, `source` (one line, written into the deal's notes), `ownerEmail`. The deal goes into the first open stage. Read back how it went with the read tool `deal_outcomes` (`dealIds`); `modules/funnel/convert.ts` uses both |
 
 ## 8. Pages and design
 
@@ -274,8 +287,16 @@ truth; add a unit test that your payload parses against them, as
 ## 10. Ship it
 
 1. Bump `version` in the module's manifest and in `package.json`.
-2. Commit, then `pnpm release` makes `dist/business-suite-<version>.tar.gz` and its SHA-256.
-3. Put both where the server can download them, and on the server:
+2. Commit, then `SUITE_RELEASE_BASE=https://<where the files will be>/ pnpm release`
+   makes three files in `dist/`: `business-suite-<version>.tar.gz`, its
+   `.sha256`, and `cloud-init.yaml` with that address and the SHA-256 filled in
+   (for a new server). Without `SUITE_RELEASE_BASE` the address is the suite's
+   own GitHub release for that version.
+3. Put the three files where the server can download them over HTTPS (a
+   GitHub release of your own repository works:
+   `gh release create v<version> dist/business-suite-<version>.tar.gz dist/business-suite-<version>.tar.gz.sha256 dist/cloud-init.yaml`;
+   how the suite's own public releases are published is in
+   [DEPLOY.md](DEPLOY.md), "1. The release"). Then on the server:
    `sudo business-suite update <address of the .tar.gz>`. It backs up first,
    runs your migrations, and rolls back by itself if the new version fails.
 

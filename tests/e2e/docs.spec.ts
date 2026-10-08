@@ -9,7 +9,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 const run = process.env.SUITE_E2E_RUN ?? Date.now().toString(36);
-const owner = { name: "Olive Owner", email: `docs-owner-${run}@example.test`, password: "owner password long enough" };
+const owner = { name: "Olive Owner", email: "owner@example.test", password: "owner password long enough" };
 
 async function ownerSession(page: Page) {
   await page.goto("/");
@@ -25,7 +25,12 @@ async function ownerSession(page: Page) {
     await expect(page.getByRole("heading", { name: "Hello, Olive" })).toBeVisible();
     return;
   }
-  throw new Error("This spec needs a fresh database (the default e2e setup makes one).");
+  // An earlier spec set the suite up as the same owner: sign in.
+  await page.goto("/sign-in");
+  await page.getByLabel("Email").fill(owner.email);
+  await page.getByLabel("Password").fill(owner.password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByRole("heading", { name: "Hello, Olive" })).toBeVisible();
 }
 
 test("docs: run a procedure, write and edit a page, import Markdown through one approval", async ({ page }) => {

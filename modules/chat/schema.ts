@@ -98,6 +98,8 @@ export const chatMessages = pgTable(
     pinnedAt: timestamp("pinned_at", { withTimezone: true }),
     pinnedBy: uuid("pinned_by").references(() => users.id, { onDelete: "set null" }),
     via: chatVia("via").notNull().default("user"),
+    /** The name of the app that posted it through Chat's action (e.g. "Tasks"), when it was not a person or the assistant. */
+    viaApp: text("via_app"),
     /** Set when a message is created once, then changes: never. Orders messages; unread counts compare with it. */
     cseq: bigint("cseq", { mode: "number" }).notNull().unique().default(sql`nextval('chat_seq')`),
     /** Bumped on every change: the realtime cursor. */

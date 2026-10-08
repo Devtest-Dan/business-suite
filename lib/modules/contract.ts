@@ -162,6 +162,13 @@ export interface ApplyContext {
   approver: Viewer;
   /** The person on whose behalf the AI or the import proposed it. */
   requestedBy: Viewer | null;
+  /**
+   * Set when another app runs this write (e.g. "tasks" posting in Chat): that
+   * app's id, so the record can say where it came from. It comes from the
+   * caller's own context, or from `propose({ calledBy })` when the ledger applies
+   * it. Unset for the assistant's, an import's or a person's own proposals.
+   */
+  calledBy?: string;
   business: { name: string; timezone: string };
 }
 
@@ -255,6 +262,14 @@ export interface ModuleManifest {
   needsMe?: (ctx: ModuleContext) => Promise<NeedsMeItem[]>;
   actions?: WriteAction<never>[];
   aiTools?: AiTool[];
+  /**
+   * Names of the people and organisations this app keeps records of (e.g.
+   * customers' contacts and companies), only those the viewer may see. With
+   * redaction on, the assistant sends each as a reference instead of the name
+   * and puts the name back before a tool runs, so lookups by name still work
+   * (lib/ai/name-refs.ts).
+   */
+  knownNames?: (ctx: ModuleContext) => Promise<string[]>;
   /** Runs once, when the owner finishes setup (or the module is first switched on). */
   seed?: (ctx: ModuleContext) => Promise<void>;
 }

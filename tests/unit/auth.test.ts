@@ -4,8 +4,10 @@ import { acceptInvite, assertCanGrant, authenticate, consumeReset, createInvite,
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { seal, unseal } from "@/lib/crypto";
 import { db } from "@/lib/db/client";
-import { users } from "@/lib/db/schema";
+import { pushSubscriptions, users } from "@/lib/db/schema";
+import { vapidKeys } from "@/lib/notifications";
 import { resolvePermissions } from "@/lib/permissions";
+import { setSetting } from "@/lib/settings";
 import { countRows, makeUser, resetDb } from "./helpers";
 
 const IP = "203.0.113.7";
@@ -27,6 +29,23 @@ describe("stored secrets", () => {
     expect(unseal(s)).toBe("sk-deepseek-secret-value");
     const tampered = { sealed: s.sealed.slice(0, -2) + (s.sealed.endsWith("A") ? "BB" : "AA") };
     expect(() => unseal(tampered)).toThrow();
+  });
+});
+
+describe("push keys after a restore with a different SUITE_SECRET_KEY (real Postgres)", () => {
+  beforeEach(resetDb);
+
+  it("makes a new key pair and forgets the old phone subscriptions instead of failing every push", async () => {
+    const first = await vapidKeys();
+    expect(await vapidKeys()).toEqual(first);
+    const u = await makeUser("member");
+    await db().insert(pushSubscriptions).values({ userId: u.id, endpoint: "https://push.example.test/1", p256dh: "p", auth: "a" });
+    // What another server's key leaves behind: a sealed value this key cannot open.
+    await setSetting("vapid", { publicKey: first.publicKey, privateKey: { sealed: "v1.AAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAA.AAAA" } }, null);
+    const second = await vapidKeys();
+    expect(second.publicKey).not.toBe(first.publicKey);
+    expect(await countRows("push_subscriptions")).toBe(0);
+    expect(await vapidKeys()).toEqual(second);
   });
 });
 

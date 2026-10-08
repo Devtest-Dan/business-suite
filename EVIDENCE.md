@@ -241,10 +241,263 @@ https://suite.127-0-0-1.sslip.io:8443/invite/<token>
   migrations applied by `scripts/migrate.mjs`, then the smoke test passed
   against it.
 
-## Not run here (one-time checks for the founder, docs/LAUNCH.md 5z)
+## 7. Deploy kit fixes (2026-10-08, on the developer machine)
+
+- **The setup code from cloud-init.yaml's example is never used.**
+  `install.sh`'s `setup_code_ok` and `pick_setup_code` were cut out of the
+  script by line pattern and run in a bash harness (Git Bash), one case each:
+
+  ```
+  the published example is refused           => random code, replaced=1, the three-line notice printed
+  the example in capitals is refused         => random code, replaced=1
+  too short (7 characters) is refused        => random code, replaced=1
+  empty makes a random code quietly          => random code, replaced=0
+  a real code ("blue-heron-42") is used      => blue-heron-42
+  re-run keeps the stored code               => the stored code
+  the example on a re-run keeps the stored   => the stored code, one notice line
+  the example stored by an older install     => random code, replaced=1
+  ```
+
+  All eight passed. The notice: "setup code: the one given cannot be used: it
+  is the example from cloud-init.yaml or shorter than 8 characters. A new
+  random code was made instead. It is printed at the end of this install and
+  kept in /opt/business-suite/.env (see it again with: sudo grep
+  SUITE_SETUP_CODE /opt/business-suite/.env)." The whole install was not run
+  again for this change.
+- **`pnpm release` writes three files.** Run twice from the same commit:
+  `business-suite-0.1.0.tar.gz` (828,845 bytes, the same SHA-256 both times:
+  files are now stamped with the commit's time, where before every run gave a
+  different file), its `.sha256` (`sha256sum -c` OK), and `cloud-init.yaml`,
+  which differs from `deploy/cloud-init.yaml` only in `SUITE_RELEASE_URL`
+  (`https://github.com/Devtest-Dan/business-suite/releases/download/v0.1.0/business-suite-0.1.0.tar.gz`)
+  and `SUITE_RELEASE_SHA256` (the archive's). With
+  `SUITE_RELEASE_BASE=https://files.example.test/suite/` the address became
+  `https://files.example.test/suite/business-suite-0.1.0.tar.gz`. The `dist/`
+  output was deleted afterwards; nothing was published.
+- **Push keys after a restore with another `SUITE_SECRET_KEY`:** a unit test on
+  the real database (`tests/unit/auth.test.ts`) stores a push key this server's
+  key cannot open; the suite makes a new pair and forgets the old phone
+  subscriptions instead of failing every push.
+
+## 8. v0.1.1 with all seven apps (2026-10-09)
+
+The runs below were on 2026-10-08 between 00:27 and 00:53 UTC. The same test
+server as in Setup (Ubuntu 24.04.5 container, systemd + cloud-init
+26.1, no Docker, privileged, `--memory 2g --memory-swap 2g --cpus 2`, Docker
+and containerd storage on volumes, 8443 → 443 and 8080 → 80), booted fresh for
+each run from the release's own `dist/cloud-init.yaml` as NoCloud user data.
+Apps: Announcements, Tasks, Docs, Customers, Assistant, Chat, Leads (funnel).
+
+- **Release:** `business-suite-0.1.1.tar.gz` (1,791,007 bytes) made by
+  `pnpm release` from commit `b265d25`, SHA-256 `60c9b3bb…ba94`, served over
+  HTTP from the developer machine (`python -m http.server 8099`).
+- **The user data:** `dist/cloud-init.yaml` with only `SUITE_RELEASE_URL`
+  changed (to `http://host.docker.internal:8099/business-suite-0.1.1.tar.gz`),
+  the setup code, domain `suite.127-0-0-1.sslip.io` and timezone
+  `America/New_York`, plus the two test-only lines (`SUITE_PUBLIC_URL` with
+  `:8443`, `SUITE_LOCAL_CERTS=1`). The SHA-256 line came filled in by
+  `pnpm release`.
+
+### 8a. The published example setup code is refused (found a hole, fixed)
+
+A first boot with `SUITE_SETUP_CODE=choose-a-code-only-you-know` left as
+published. The install log said:
+
+```
+==> Secrets and settings (/opt/business-suite/.env)
+    setup code: the one given cannot be used: it is the example from cloud-init.yaml or shorter than 8 characters.
+    A new random code was made instead. It is printed at the end of this install and kept in /opt/business-suite/.env
+    (see it again with: sudo grep SUITE_SETUP_CODE /opt/business-suite/.env). Next time, change SUITE_SETUP_CODE before pasting cloud-init.yaml.
+...
+==> Done. The business suite 0.1.1 is running.
+    Open:        https://suite.127-0-0-1.sslip.io:8443
+    Setup code:  a6bb51-7d9e75   (the first-run page asks for it)
+                 made here, because the code given was the example from
+                 cloud-init.yaml or shorter than 8 characters
+```
+
+But the setup page then **accepted the example code** and made a stranger the
+owner: inside the app container `SUITE_SETUP_CODE` was 27 characters long (the
+example), not the random code in `.env`. Cause: cloud-init's runcmd runs
+`set -a; . /root/business-suite-install.env` before `install.sh`, and
+`docker compose` lets the caller's environment override `--env-file`. Fix
+(commit `b265d25`): `compose()` in `deploy/install.sh`, `deploy/lib.sh` and
+`deploy/suite.sh` runs `env -u <every name in .env> docker compose ...`, so
+`.env` is what the containers get. `tests/unit/deploy-env.test.ts` cuts each
+script's `compose()` out and runs it in bash with the cloud-init variables set
+and a stand-in `docker`: all three pass.
+
+Re-run on a fresh box with the fixed release (cloud-init 00:38:22 → 00:42:56,
+4 min 34 s): the same three notice lines and a new random code `91ca25-410c90`;
+the app container's `SUITE_SETUP_CODE` is 13 characters. In Chromium:
+
+```
+example code -> error: That setup code is wrong. It is in the server's install output (/var/log/business-suite-install.log
+                after a cloud-init install), or the SETUP_CODE line you put in the cloud-init text. If that line was the
+                example or shorter than 8 characters, the install made a random code instead.
+still on /setup
+printed code -> signed in at / heading: Hello, Pat
+```
+
+### 8b. cloud-init → install.sh: 3 min 58 s from first boot to healthy
+
+With the setup code `evidence-0111-harbor`:
+
+```
+booted 2026-10-08T00:43:42Z
+Cloud-init v. 26.1-0ubuntu1~24.04.1 running 'init-local' at Thu, 08 Oct 2026 00:43:47 +0000.
+Cloud-init v. 26.1-0ubuntu1~24.04.1 finished at Thu, 08 Oct 2026 00:47:45 +0000. Datasource DataSourceNoCloud
+$ cloud-init status --long   → status: done (recoverable warnings: SSH host keys only; the test image has no OpenSSH)
+
+/var/log/business-suite-install.log (build output trimmed):
+==> Checking the server
+    Ubuntu 24.04.5 LTS
+    2 CPU, 3917 MB memory            (the VM's; the container is capped at 2 GB)
+==> Docker
+    Docker version 29.8.2, build 7fc2dff, 5.6.0
+==> The release
+    downloading http://host.docker.internal:8099/business-suite-0.1.1.tar.gz
+    SHA-256 checked
+    version 0.1.1
+==> Building the app image (a few minutes the first time)
+    #12 [deps 5/5] RUN pnpm install --frozen-lockfile   DONE 26.4s
+    #14 29.61 ✓ Compiled successfully in 28.0s
+    #14 73.85 ✓ Generating static pages using 1 worker (21/21) in 455ms
+==> Waiting for the app to answer /health
+{"ok":true,"version":"0.1.1","database":"ok","migrations":11,"ms":1}
+==> Done. The business suite 0.1.1 is running.
+    Open:        https://suite.127-0-0-1.sslip.io:8443
+    Setup code:  evidence-0111-harbor   (the first-run page asks for it)
+
+$ docker buildx history ls     → 0.1.1   Completed   2m 18s      (the image build)
+images: business-suite-app:0.1.1 327MB, caddy:2-alpine 93.1MB, postgres:16-alpine 420MB
+suite_migrations: core 0000_core, 0001_audit_log_append_only, 0002_approvals_called_by; announcements 0000;
+                  tasks 0000; docs 0000; customers 0000; assistant 0000; chat 0000, 0001_chat_via_app; funnel 0000
+$ curl https://suite.127-0-0-1.sslip.io:8443/health   → {"ok":true,"version":"0.1.1","database":"ok","migrations":11,"ms":2}
+$ curl http://suite.127-0-0-1.sslip.io:8080/          → 308 https://suite.127-0-0-1.sslip.io/
+```
+
+The three boots of this release took 5 min 43 s (the first, before the fix:
+cold package downloads, `next build` 114.7 s), 4 min 34 s and 3 min 58 s
+(`next build` 76.2 s and 74.9 s). The 0.1.0 build with one app took 3 min 19 s.
+
+### 8c. Through Caddy in Chromium: every app, one write each, Leads, bulk approval twice
+
+A Playwright script against `https://suite.127-0-0-1.sslip.io:8443`
+(output as printed, times UTC):
+
+```
+00:48:23 setup: owner created, home shows 'Hello, Olive'
+00:48:23 app announcements: HTTP 200, /m/announcements, h1 "Announcements"
+00:48:24 app tasks: HTTP 200, /m/tasks, h1 "My tasks"
+00:48:24 app docs: HTTP 200, /m/docs, h1 "Docs"
+00:48:24 app customers: HTTP 200, /m/customers, h1 "Contacts"
+00:48:25 app assistant: HTTP 200, /m/assistant, h1 "Assistant"      (shows "No AI provider is set up yet")
+00:48:25 app chat: HTTP 200, /m/chat, h1 "Chat"
+00:48:25 app funnel: HTTP 200, /m/funnel, h1 "Leads"
+00:48:28 announcement posted: /m/announcements/40616244-…
+00:48:29 task created in project Launch v011
+00:48:30 doc page saved: /m/docs/p/466723c4-…
+00:48:33 customer added: /m/customers/contacts/d8086a45-…
+00:48:34 chat message sent in #general
+00:48:34 form created; public page https://suite.127-0-0-1.sslip.io:8443/api/m/funnel/f/zfvxjrgm2qbb
+00:48:35 public page signed out: HTTP 200 csp: default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:;
+         base-uri 'none'; form-action 'self'; frame-ancestors *
+00:48:35 submitted signed out: /api/m/funnel/f/zfvxjrgm2qbb/thanks
+00:48:36 lead in What needs me, in Notifications and in the Leads list
+00:48:39 first approve: 3 records written.
+00:48:40 second approve: This was already approved earlier. 0 records written.
+00:48:40 each imported post listed once
+00:48:40 WALK PASSED
+```
+
+The bulk approval is a 3-row announcements CSV import, opened in two tabs and
+approved in each. The database afterwards:
+
+```
+ owner | Olive Owner | owner-v011@example.test | $argon2id$v=19$m=19456,t=2,p=1
+ Import 3 announcements | import | applied | total 3 | applied_count 3
+ approval_items: positions 0, 1, 2 all applied, attempts = 1
+ posts: Holiday hours v011 1, Parking v011 1, Stock count v011 1, Team lunch v011 1
+ tasks 1 | doc_pages 1 | contacts 1 | chat_messages 1 | lead_forms 1 | leads 1
+ notification: "New lead: Ana Reyes v011" — Web form “Website contact”. Your target is to contact them within 15 min.
+ audit_log: approvals.proposed (3 × Post an announcement), approvals.approved, approvals.applied "3 written." (once)
+```
+
+### 8d. The day-to-day commands
+
+```
+$ business-suite status
+business-suite-app-1      business-suite-app:0.1.1   Up About a minute (healthy)
+business-suite-backup-1   business-suite-app:0.1.1   Up About a minute
+business-suite-caddy-1    caddy:2-alpine             Up About a minute   0.0.0.0:80->80, 0.0.0.0:443->443 (tcp+udp)
+business-suite-db-1       postgres:16-alpine         Up About a minute (healthy)
+{"ok":true,"version":"0.1.1","database":"ok","migrations":11,"ms":10}
+Last local backup: none yet
+
+$ business-suite secret-key show
+SUITE_SECRET_KEY (it locks the AI key, the email password and the push key stored in the database).
+Write it down somewhere safe that is not this server. Restoring a backup on a new server needs it.
+<a 44-character value, not copied here; its hash on the server matches SUITE_SECRET_KEY in .env>
+
+$ business-suite backup
+2026-10-08T00:49:21.817Z backup: 2026-10-08T00-49-21Z done in 0.3s: db 192797 bytes, files 109 bytes
+backups/2026-10-08T00-49-21Z: db.dump 192797, files.tar.gz 109, manifest.json (version 0.1.1, both parts with sizes and SHA-256)
+pg_restore --list db.dump: 66 TABLE DATA entries, among them users, approvals, announcements_posts,
+  tasks_tasks, docs_pages, customers_contacts, chat_messages, funnel_forms, funnel_leads
+rows of this walk inside db.dump (pg_restore -a -t <table>): funnel_leads 1, chat_messages 1, customers_contacts 1,
+  docs_pages 1, tasks_tasks 1, announcements_posts 4
+settings row 'backup': {"ok": true, "name": "2026-10-08T00-49-21Z", "bytes": 192906, "offsite": null}
+```
+
+### 8e. RAM (2 GB box, all seven apps)
+
+`docker stats` inside the server:
+
+| | app | PostgreSQL | Caddy | backup | total |
+| --- | --- | --- | --- | --- | --- |
+| Idle, just installed (00:48) | 59.9 MiB | 35.7 MiB | 13.1 MiB | 11.1 MiB | 120 MiB |
+| During the browser walk (highest sample, 00:48:36) | 144.0 MiB | 71.4 MiB | 17.0 MiB | 11.1 MiB | 244 MiB |
+| Idle after the walk (00:49) | 94.0 MiB | 52.2 MiB | 17.1 MiB | 11.7 MiB | 175 MiB |
+| Highest sample during load (below) | 185.8 MiB | 79.0 MiB | 26.1 MiB | 11.7 MiB | 303 MiB |
+| One minute after the load (00:52) | 99.7 MiB | 46.2 MiB | 18.1 MiB | 11.8 MiB | 176 MiB |
+
+The load: 1,400 signed-in page loads over 14 pages of all seven apps (home,
+Announcements, My tasks, Projects, Docs, Contacts, Deals, Assistant, Chat,
+Leads, the funnel report, search, Approvals, Notifications), 20 at a time,
+through Caddy: 87.9 s (15.9 pages/s), every one 200, p50 660 ms, p95 3,170 ms
+(nested containers on a laptop's Docker VM). The app's highest sample was
+188.6 MiB.
+
+The build and swap: the box's cgroup (`memory.max` 2048 MiB, `memory.swap.max`
+0, so no swap at all) reached `memory.peak` 2048 MiB during the image build,
+with 1,078 `max` events (the kernel reclaiming page cache) and **0 OOM kills**;
+after the install the box held 254 MiB of process memory and 1,581 MiB of page
+cache. So the 2 GB build finished without swap here. `install.sh` did not add
+its swap file because the container sees the VM's 3,917 MB (`free`), above its
+3,800 MB threshold; on a real 2 GB server it adds 2 GB of swap before building,
+which was not exercised.
+
+### 8f. On the developer machine
+
+`pnpm typecheck && pnpm lint` clean; `pnpm suite:check` 10 passed; `pnpm test`
+19 files, 431 tests passed (against PostgreSQL 16, with the new
+`tests/unit/deploy-env.test.ts`).
+
+### Not run in this section
+
+`business-suite update`, restore and reset-link on 0.1.1 (section 4 ran them on
+0.1.0); invites and a second person; email over SMTP; the Leads email
+sequence and unsubscribe (in `modules/funnel/EVIDENCE.md`, on the developer
+machine); the brain; the swap file on a real 2 GB server. The `dist/` output
+was deleted afterwards; nothing was published.
+
+## Not run here (one-time checks on a real server)
 
 - A real VPS with a public IP: Let's Encrypt via Caddy (here: Caddy's local CA).
 - A real AI call (no DeepSeek key on this machine): Settings → AI → "Send a test message".
 - Web Push to a real phone.
 - A real SMTP provider and a real S3-compatible bucket for off-site backups.
 - Ubuntu 26.04 and ARM servers.
+- A real server with 2 GB of memory, where `install.sh` adds its swap file
+  before the build (the test box shows the VM's memory, so it skipped it).

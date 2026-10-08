@@ -76,6 +76,9 @@ describe("card numbers are refused", () => {
     expect(contactInput.safeParse({ name: "Jo", custom: { memo: card } }).success).toBe(false);
     expect(contactInput.safeParse({ name: "Jo", phone: "4111 1111 1111 1111" }).success).toBe(false);
     expect(contactInput.safeParse({ name: "Jo", phone: "+1 (415) 555-0100" }).success).toBe(true);
+    // The common US way of writing a number, starting with the area code in brackets.
+    expect(contactInput.safeParse({ name: "Jo", phone: "(415) 555-0100" }).success).toBe(true);
+    expect(contactInput.safeParse({ name: "Jo", phone: "(415) 555-0100 call after 5" }).success).toBe(false);
     expect(noteInput.safeParse({ contactId: "00000000-0000-4000-8000-000000000000", body: `paid with ${card}` }).success).toBe(false);
     expect(checkCustomValues([{ key: "memo", label: "Memo", type: "text", options: [] }], { memo: card }).errors.memo).toMatch(/card number/);
   });

@@ -20,8 +20,12 @@ owner controls, so some jobs are the owner's. None takes long. Do them.
    (most providers let you add the key when creating the server). Keep the
    key on your own computer only.
 6. **Write down where things are**: the provider account, the domain's DNS
-   account, the S3 bucket and its key, and the setup code. Keep that note
-   somewhere safe that is not the server.
+   account, the S3 bucket and its key, the setup code, and the suite's
+   encryption key (`sudo business-suite secret-key show`). Keep that note
+   somewhere safe that is not the server. The encryption key is in no
+   backup: restoring on a new server without it means entering the AI key and
+   the email password again and switching phone notifications off and on
+   ([DEPLOY.md](DEPLOY.md), "Backups").
 
 ## Every month (about 10 minutes)
 

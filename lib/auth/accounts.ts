@@ -46,7 +46,7 @@ export async function createOwner(input: OwnerInput, ip: string): Promise<Viewer
     if (await isLimited("setup", keys)) throw new UserError(`Too many wrong setup codes. Wait ${SIGN_IN_WINDOW_MINUTES} minutes and try again.`);
     if (!safeEqual(input.setupCode, expected)) {
       await recordAttempt("setup", keys, false);
-      throw new UserError("That setup code is wrong. It is in the server's install output, or the SETUP_CODE line you put in the cloud-init text.");
+      throw new UserError("That setup code is wrong. It is in the server's install output (/var/log/business-suite-install.log after a cloud-init install), or the SETUP_CODE line you put in the cloud-init text. If that line was the example or shorter than 8 characters, the install made a random code instead.");
     }
   }
   const passwordHash = await hashPassword(input.password);

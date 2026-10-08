@@ -22,8 +22,9 @@ Slack a small team uses every day, without the subscription.
   messages say "(edited)". You can delete your own messages; a chat admin can
   delete anyone's, and that is recorded in the activity log.
 - **Files and images.** The paperclip attaches files (10 MB each, up to ten
-  per message). They are kept in the suite's own file storage, so they are in
-  the nightly backup.
+  per message). They are kept in the suite's own file storage: on the server's
+  disk they are in the nightly backup; in an S3 bucket they are not, so turn
+  on the bucket's versioning (DEPLOY.md, "Files in S3 instead of on the disk").
 - **Unread and "jump to unread".** Bold names and counts in the list; a red
   count is for you (a mention or a direct message). Opening a conversation
   shows a "New messages" line and a *Jump to unread* button.

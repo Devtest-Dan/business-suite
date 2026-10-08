@@ -26,7 +26,11 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: "list",
   use: { baseURL, ignoreHTTPSErrors: Boolean(external), trace: "retain-on-failure" },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // The smoke test walks the first-run setup, so it runs before the app specs, which then sign in as the same owner.
+  projects: [
+    { name: "setup", testMatch: /smoke.spec.ts/, use: { ...devices["Desktop Chrome"] } },
+    { name: "chromium", testIgnore: /smoke.spec.ts/, dependencies: ["setup"], use: { ...devices["Desktop Chrome"] } },
+  ],
   webServer: external
     ? undefined
     : {

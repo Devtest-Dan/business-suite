@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { crossAppAction, deleteMessageAction, editMessageAction, pinAction, reactAction } from "../actions";
 import type { MessageView } from "../data";
-import { REACTIONS, type Person, type Reaction } from "../text";
+import { REACTIONS, sourceLabel, type Person, type Reaction } from "../text";
 import { Attachments, LinkCard, MessageText } from "./message-body";
 
 export interface ItemOptions {
@@ -42,6 +42,7 @@ export function MessageItem({ m, compact, highlight, o, onChanged }: { m: Messag
   const [note, setNote] = useState<{ text: string; url?: string; error?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   const mine = m.authorId === o.viewerId;
+  const label = sourceLabel(m);
 
   async function act(fn: () => Promise<{ ok: boolean; error?: string }>) {
     setBusy(true);
@@ -63,7 +64,7 @@ export function MessageItem({ m, compact, highlight, o, onChanged }: { m: Messag
       {!compact ? (
         <header className="flex flex-wrap items-baseline gap-x-2">
           <span className="font-semibold">{m.authorName}</span>
-          {m.via === "ai" ? <span className="badge">drafted by the assistant</span> : m.via === "import" ? <span className="badge">from Slack</span> : null}
+          {label ? <span className="badge">{label}</span> : null}
           <time dateTime={m.createdAt} title={full(m.createdAt, o.timezone)} className="text-xs text-subtle">
             {time(m.createdAt, o.timezone)}
           </time>

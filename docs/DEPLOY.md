@@ -14,11 +14,44 @@ once and can be swapped for your domain later.
 
 ## 1. The release
 
-A release is one file, `business-suite-<version>.tar.gz`, and its SHA-256
-(`business-suite-<version>.tar.gz.sha256`). Your developer makes them with
-`pnpm release` (they are built from a commit, so the same commit always gives
-the same file) and puts them somewhere the server can download from over
-HTTPS. The checksum is what proves the server got the file you meant.
+A release is three files on the suite's GitHub releases page
+(https://github.com/Devtest-Dan/business-suite/releases):
+`business-suite-<version>.tar.gz` (the suite), its SHA-256
+(`business-suite-<version>.tar.gz.sha256`) and `cloud-init.yaml` with that
+release's address and SHA-256 already filled in. The checksum is what proves
+the server got the file you meant.
+
+A developer who changed the suite for one business makes their own release
+the same way. In `suite/`, bump `version` in `package.json`, commit, then:
+
+```bash
+SUITE_RELEASE_BASE=https://<where the files will be>/ pnpm release
+```
+
+It writes the three files into `dist/` from the last commit (the same commit
+always gives the same `.tar.gz`). Without `SUITE_RELEASE_BASE`, the address in
+`dist/cloud-init.yaml` is the GitHub release asset
+`https://github.com/Devtest-Dan/business-suite/releases/download/v<version>/business-suite-<version>.tar.gz`.
+Put the three files somewhere the server can download from over HTTPS.
+
+**Publishing a release of the suite itself on GitHub.** The public repository
+holds the suite folder only, with its own history (it was first exported
+with fresh history, not the history of the repository the suite is developed
+in). For each release, after `pnpm release`:
+
+```bash
+git clone https://github.com/Devtest-Dan/business-suite.git ../business-suite-public
+git -C ../business-suite-public rm -rq --ignore-unmatch .
+tar -xzf dist/business-suite-<version>.tar.gz -C ../business-suite-public --strip-components=1
+git -C ../business-suite-public add -A
+git -C ../business-suite-public commit -m "Business Suite <version>"
+git -C ../business-suite-public tag v<version>
+git -C ../business-suite-public push origin main v<version>
+gh release create v<version> -R Devtest-Dan/business-suite --title "Business Suite <version>" --notes-file <notes>   dist/business-suite-<version>.tar.gz dist/business-suite-<version>.tar.gz.sha256 dist/cloud-init.yaml
+```
+
+Then download `cloud-init.yaml` from the new release and check that its
+`SUITE_RELEASE_URL` opens and its SHA-256 matches the `.sha256` file.
 
 ## 2a. Install with a few clicks (cloud-init)
 
@@ -26,9 +59,12 @@ HTTPS. The checksum is what proves the server got the file you meant.
    region nearest your team.
 2. Find the box called **User data** (or "Cloud config", "Initialization
    script"; often under "Advanced").
-3. Open `deploy/cloud-init.yaml`, change the lines marked `CHANGE` (release
-   address, its SHA-256, a setup code only you know) and optionally your
-   domain, email and timezone. Paste the whole text into the box.
+3. Download `cloud-init.yaml` from the release you are installing (the
+   release address and its SHA-256 are already filled in) and change
+   `SUITE_SETUP_CODE` to a code only you know, at least 8 characters.
+   Optionally fill in your domain, email and timezone. Paste the whole text
+   into the box. (Left as the example or too short, the install makes a
+   random code instead and prints it at the end of the install log.)
 4. Create the server. It sets itself up in the background: about ten minutes
    on a 2 vCPU server, most of it building the app.
 5. Open `https://<your domain>` (or `https://<IP-with-dashes>.sslip.io`). The
@@ -40,11 +76,11 @@ and run `sudo tail -50 /var/log/business-suite-install.log`.
 ## 2b. Install by hand (SSH)
 
 ```bash
-curl -fLO https://<where-your-release-is>/business-suite-0.1.0.tar.gz
-curl -fLO https://<where-your-release-is>/business-suite-0.1.0.tar.gz.sha256
-sha256sum -c business-suite-0.1.0.tar.gz.sha256
-tar -xzf business-suite-0.1.0.tar.gz
-sudo bash business-suite-0.1.0/deploy/install.sh --domain suite.example.com --email you@example.com
+curl -fLO https://github.com/Devtest-Dan/business-suite/releases/download/v0.1.1/business-suite-0.1.1.tar.gz
+curl -fLO https://github.com/Devtest-Dan/business-suite/releases/download/v0.1.1/business-suite-0.1.1.tar.gz.sha256
+sha256sum -c business-suite-0.1.1.tar.gz.sha256
+tar -xzf business-suite-0.1.1.tar.gz
+sudo bash business-suite-0.1.1/deploy/install.sh --domain suite.example.com --email you@example.com
 ```
 
 Without `--domain` it asks, and Enter takes the sslip.io name. It prints the
@@ -98,6 +134,9 @@ sudo business-suite restore <name>    put one back (asks first)
 sudo business-suite update <release>  move to a new release
 sudo business-suite reset-link <email> a one-time password reset link (when nobody can sign in)
 sudo business-suite restart
+sudo business-suite brain on|off|status the optional business brain for the Assistant app
+sudo business-suite compose <args>    any docker compose command, with the suite's files
+sudo business-suite secret-key show   the encryption key, to write down off the server
 ```
 
 ### Reading the logs
@@ -140,6 +179,19 @@ Everything written after that backup is lost. For an off-site copy, download
 its folder into `/opt/business-suite/backups/` first. Try a restore once on a
 spare server: a backup you have never restored is a hope, not a backup.
 
+**Restoring on a new server needs the old encryption key.** The AI key, the
+email (SMTP) password and the key for phone notifications are stored in the
+database locked with `SUITE_SECRET_KEY` from `/opt/business-suite/.env`, and
+that key is in no backup. Write it down when the suite is installed
+(`sudo business-suite secret-key show`) and keep it off the server. On the new
+server, after `install.sh` and before `business-suite restore`, put the old
+value in `/opt/business-suite/.env` (`SUITE_SECRET_KEY=...`) and run
+`sudo business-suite compose up -d app`. Without the old key the restore still
+works, but enter the AI key again in Settings → AI and the SMTP password in
+Settings → Email, and on each phone switch push notifications off and on again
+in Account. The Assistant's link to the business brain is locked with the
+same key, so keep the old key if you use the brain.
+
 ## Updates
 
 ```bash
@@ -161,7 +213,10 @@ Ubuntu's own security updates: see [SECURITY.md](SECURITY.md).
 Set `FILES_S3_ENDPOINT`, `FILES_S3_REGION`, `FILES_S3_BUCKET`,
 `FILES_S3_ACCESS_KEY_ID` and `FILES_S3_SECRET_ACCESS_KEY` in `.env` and run
 `sudo business-suite compose up -d`. New uploads go to the bucket (under
-`files/`); files uploaded before stay on the disk and keep working.
+`files/`); files uploaded before stay on the disk and keep working. The
+nightly backup copies only the files on the disk, not the ones in the bucket:
+turn on the bucket's versioning (and a lifecycle rule for old versions) so a
+deleted or overwritten file can be got back.
 
 ## A local model (Ollama)
 

@@ -5,7 +5,7 @@ import { db } from "@/lib/db/client";
 import { approvalItems } from "@/lib/db/schema";
 import type { ApplyContext, ApplyResult, ModuleContext, Viewer } from "@/lib/modules/contract";
 import { permissionsFor } from "@/lib/permissions";
-import { assertSubjectExists, followUpSubjectUrl, insertFollowUp, userIdByEmail } from "./data";
+import { assertSubjectExists, followUpSubjectUrl, insertFollowUp, MODULE_ID, userIdByEmail } from "./data";
 import { customerFollowUps } from "./schema";
 import type { FollowUpInput } from "./schemas";
 import { taskInputFor, tasksLink, type TaskDraft } from "./tasks-link";
@@ -97,7 +97,7 @@ export async function applyFollowUp(ctx: ApplyContext, input: FollowUpInput): Pr
   if (link && shape && approverHolds) {
     try {
       // A savepoint: if Tasks fails, only its part is rolled back and the reminder below still works.
-      const task = await ctx.tx.transaction((sp) => link.action.apply({ ...ctx, tx: sp, moduleId: "tasks", dedupeKey: `customers:${ctx.dedupeKey}` }, link.action.input.parse(shape)));
+      const task = await ctx.tx.transaction((sp) => link.action.apply({ ...ctx, tx: sp, moduleId: "tasks", calledBy: MODULE_ID, dedupeKey: `customers:${ctx.dedupeKey}` }, link.action.input.parse(shape)));
       const row = await insertFollowUp(ctx.tx, fields, by, { via: "tasks", taskApprovalId: ctx.approvalId, taskId: task.targetId ?? null, sourceKey });
       return { targetId: row.id, summary: `Added the task “${row.title}” in Tasks for ${about}, due ${row.dueOn}`, after: task.after };
     } catch (error) {

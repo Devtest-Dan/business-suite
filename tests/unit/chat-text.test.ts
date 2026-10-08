@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { fetchPreview, hostAllowed, isPrivateAddress, parseMeta } from "@/modules/chat/link-preview";
 import { planSlackImport } from "@/modules/chat/slack-import";
-import { channelName, dmKey, findMentions, mentionQuery, pieces, slackToText } from "@/modules/chat/text";
+import { channelName, dmKey, findMentions, mentionQuery, pieces, slackToText, sourceLabel } from "@/modules/chat/text";
 import { readZip } from "@/modules/chat/zip";
 import { makeZip } from "./zip-fixture";
 
 describe("chat text", () => {
+  it("labels a message by where it came from; an app's name wins over the assistant", () => {
+    expect(sourceLabel({ via: "user", viaApp: "Tasks" })).toBe("from Tasks");
+    expect(sourceLabel({ via: "ai", viaApp: "Tasks" })).toBe("from Tasks");
+    expect(sourceLabel({ via: "ai", viaApp: null })).toBe("drafted by the assistant");
+    expect(sourceLabel({ via: "import", viaApp: null })).toBe("from Slack");
+    expect(sourceLabel({ via: "user", viaApp: null })).toBeNull();
+  });
+
   it("makes channel names", () => {
     expect(channelName("Front Desk!")).toBe("front-desk");
     expect(channelName("#Café  news_2026")).toBe("cafe-news-2026");

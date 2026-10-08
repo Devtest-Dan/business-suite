@@ -28,7 +28,8 @@ const phoneField = z
   .string()
   .trim()
   .max(40, "Keep the phone number under 40 characters.")
-  .refine((v) => v === "" || /^[+\d][\d ()+.\-/x]*$/i.test(v), "Use digits, spaces and + ( ) - only in the phone number.")
+  // A US number is often written "(512) 555-0101", so it may start with "(" too.
+  .refine((v) => v === "" || /^[+\d(][\d ()+.\-/x]*$/i.test(v), "Use digits, spaces and + ( ) - only in the phone number.")
   .refine((v) => v.startsWith("+") || !looksLikeCardNumber(v), CARD_MESSAGE)
   .default("");
 
@@ -281,6 +282,25 @@ export const followUpInput = z
   })
   .refine(needsSubject, SUBJECT_MESSAGE);
 export type FollowUpInput = z.output<typeof followUpInput>;
+
+/**
+ * A deal together with the person it is for (other apps use it, e.g. Leads
+ * converting a lead). The contact is matched against existing contacts like an
+ * import row (email, then phone, then name) and merged when it is the same
+ * person; the deal goes into the first open stage of the pipeline.
+ */
+export const dealWithContactInput = z.object({
+  title: safeText(200, "Keep the title under 200 characters.").pipe(z.string().min(1, "Give the deal a title.")),
+  contact: contactInput,
+  /** Whole cents; null when nobody has put a value on it yet. */
+  valueCents: z.number().int().min(0).max(100_000_000_000_000).nullable().default(null),
+  notes: optionalText(5000, "the notes"),
+  /** Where the deal came from (e.g. "Leads: Website form, utm_source=google"), written into its notes. */
+  source: optionalText(300, "the source"),
+  /** The deal's owner (an email of someone in the suite); empty means the person who asked. */
+  ownerEmail: z.string().trim().toLowerCase().max(254).default(""),
+});
+export type DealWithContactInput = z.output<typeof dealWithContactInput>;
 
 export const dealStageInput = z.object({
   dealId: z.string().uuid(),

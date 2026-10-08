@@ -69,7 +69,8 @@ rented to-do or project tool for a team of up to 50.
 - Archiving a project hides it from lists, My tasks and reminders and keeps
   everything. Deleting removes its tasks, comments and files for good.
 - Attachments are limited to 10 MB each and are kept with the suite's other
-  files (and in its nightly backup).
+  files (in the nightly backup when they are on the server's disk; in an S3
+  bucket, rely on the bucket's versioning instead).
 
 ## For an intern extending it (with Claude Code or Codex)
 

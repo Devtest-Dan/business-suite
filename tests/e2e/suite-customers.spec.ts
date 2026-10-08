@@ -13,7 +13,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 const run = process.env.SUITE_E2E_RUN ?? Date.now().toString(36);
-const owner = { name: "Olive Owner", email: `owner-${run}@example.test`, password: "owner password long enough" };
+const owner = { name: "Olive Owner", email: "owner@example.test", password: "owner password long enough" };
 const jo = `Jo Rivera ${run}`;
 const joEmail = `jo-${run}@example.test`;
 
@@ -59,10 +59,13 @@ test("customers: contact, timeline, follow-up, pipeline, import with merge (appr
   await page.getByLabel("What happened").fill("Called about the spring order. Wants a quote.");
   await page.getByRole("button", { name: "Add to timeline" }).click();
   await expect(page.getByTestId("timeline").getByText("Called about the spring order. Wants a quote.")).toBeVisible();
+  // A save that worked clears the form; one that was refused keeps what was typed.
+  await expect(page.getByLabel("What happened")).toHaveValue("");
   await page.getByLabel("What happened").fill("Pays with 4111 1111 1111 1111");
   await page.getByRole("button", { name: "Add to timeline" }).click();
   await expect(page.locator(".notice-error")).toContainText("looks like a payment card number");
   await expect(page.getByTestId("timeline").getByText("4111")).toHaveCount(0);
+  await expect(page.getByLabel("What happened")).toHaveValue("Pays with 4111 1111 1111 1111");
 
   // 4. A follow-up due today: on the contact, and on the home page ("what needs me").
   await page.getByText("Set a follow-up").click();
@@ -70,7 +73,7 @@ test("customers: contact, timeline, follow-up, pipeline, import with merge (appr
   await page.getByRole("button", { name: "Set follow-up" }).click();
   await expect(page.getByTestId("follow-up-list").getByText(`Send the quote ${run}`)).toBeVisible();
   await page.goto("/");
-  await expect(page.getByTestId("needs-me").getByRole("link", { name: new RegExp(`^Today: Send the quote ${run}`) })).toBeVisible();
+  await expect(page.getByTestId("needs-me").getByRole("link", { name: new RegExp(`^(Due )?today: Send the quote ${run}`, "i") })).toBeVisible();
   // The "due" notification is sent once, on that first load; it shows from the next one.
   await page.reload();
   await expect(page.getByTestId("needs-me").getByRole("link", { name: new RegExp(`^Due today: Send the quote ${run}`) })).toBeVisible();

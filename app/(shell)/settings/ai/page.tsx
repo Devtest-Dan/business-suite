@@ -60,6 +60,7 @@ export default async function AiSettingsPage() {
           <input type="checkbox" name="redact" defaultChecked={ai.redact} className="mt-0.5 size-4" />
           <span>
             Redact personal details before sending (names, emails, phone numbers, card and id numbers, street addresses and anything that looks like a key).
+            Names the suite knows (your team, your customers) are sent as references and put back here, so the assistant can still look them up by name.
             Recommended for a provider outside your server.
           </span>
         </label>

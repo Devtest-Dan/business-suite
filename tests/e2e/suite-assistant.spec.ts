@@ -15,7 +15,7 @@ import { startStandInModel } from "./stand-in-model";
  */
 
 const run = process.env.SUITE_E2E_RUN ?? Date.now().toString(36);
-const owner = { name: "Olive Owner", email: `owner-${run}@example.test`, password: "owner password long enough" };
+const owner = { name: "Olive Owner", email: "owner@example.test", password: "owner password long enough" };
 
 async function signInOrSetUp(page: Page) {
   await page.goto("/");

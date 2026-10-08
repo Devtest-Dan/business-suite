@@ -8,6 +8,13 @@
       "when": 1791393194965,
       "tag": "0000_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791413641149,
+      "tag": "0001_chat_via_app",
+      "breakpoints": true
     }
   ]
 }

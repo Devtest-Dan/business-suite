@@ -70,6 +70,12 @@ export interface ProposeInput {
   note?: string;
   /** Explicit dedupe keys, one per item (e.g. AI tool-call ids or an import's key column). */
   keys?: (string | null | undefined)[];
+  /**
+   * The id of the app proposing this from its own code (e.g. "tasks" posting in
+   * Chat when a task is done). The action receives it as ctx.calledBy, so the
+   * record can say which app sent it.
+   */
+  calledBy?: string;
 }
 
 export interface ProposeResult {
@@ -83,6 +89,9 @@ export interface ProposeResult {
 export async function propose(input: ProposeInput): Promise<ProposeResult> {
   const { module, action } = findAction(input.action);
   if (input.items.length === 0) throw new ApprovalError("There is nothing to approve: the batch has no records.");
+  if (input.calledBy !== undefined && !findModule(input.calledBy)) {
+    throw new ApprovalError(`No app "${input.calledBy}" is in this suite, so it cannot be named as the app that proposed this.`);
+  }
   if (input.items.length > MAX_BATCH) {
     throw new ApprovalError(`A batch can hold at most ${MAX_BATCH} records; this one has ${input.items.length}. Split it and try again.`);
   }
@@ -123,6 +132,7 @@ export async function propose(input: ProposeInput): Promise<ProposeResult> {
           .join(" "),
         source: input.source,
         requestedBy: input.requestedBy?.id ?? null,
+        calledBy: input.calledBy ?? null,
         total: 0,
       })
       .returning({ id: approvals.id });
@@ -251,6 +261,7 @@ export async function approve(approvalId: string, approver: Viewer, options: { s
       approver,
       requestedBy,
       business: { name: business.name, timezone: business.timezone },
+      calledBy: approval.calledBy ?? undefined,
       retryFailed: options.retryFailed ?? false,
     });
     if (outcome === "applied") appliedNow += 1;
@@ -281,7 +292,7 @@ type ItemOutcome = "applied" | "failed" | "not-claimed";
 async function runItem(
   itemId: string,
   action: WriteAction<unknown>,
-  ctx: { approvalId: string; source: ApprovalSource; moduleId: string; approver: Viewer; requestedBy: Viewer | null; business: { name: string; timezone: string }; retryFailed: boolean },
+  ctx: { approvalId: string; source: ApprovalSource; moduleId: string; approver: Viewer; requestedBy: Viewer | null; business: { name: string; timezone: string }; calledBy?: string; retryFailed: boolean },
 ): Promise<ItemOutcome> {
   const token = randomUUID();
   const staleOk = action.sideEffects === "database";
@@ -305,7 +316,17 @@ async function runItem(
     await db().transaction(async (tx) => {
       const input = action.input.parse(claimed.payload);
       const result = await action.apply(
-        { tx, moduleId: ctx.moduleId, approvalId: ctx.approvalId, source: ctx.source, dedupeKey: claimed.dedupeKey, approver: ctx.approver, requestedBy: ctx.requestedBy, business: ctx.business },
+        {
+          tx,
+          moduleId: ctx.moduleId,
+          approvalId: ctx.approvalId,
+          source: ctx.source,
+          dedupeKey: claimed.dedupeKey,
+          approver: ctx.approver,
+          requestedBy: ctx.requestedBy,
+          business: ctx.business,
+          ...(ctx.calledBy ? { calledBy: ctx.calledBy } : {}),
+        },
         input,
       );
       after = result.after;

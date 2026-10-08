@@ -13,8 +13,9 @@ import type { ImportMessageInput, PostMessageInput } from "./schemas";
 import { slackTsToDate } from "./text";
 
 /**
- * Applies one approved "post a message" from the assistant. The person who
- * asked is the author, so the message goes only where they could post it
+ * Applies one approved "post a message" from the assistant, or one another
+ * app posts through this action (ctx.calledBy; the message then says which
+ * app sent it, not "drafted by the assistant"). The person who asked is the author, so the message goes only where they could post it
  * themselves; otherwise the record fails with a plain reason.
  */
 export async function applyPostMessage(ctx: ApplyContext, input: PostMessageInput): Promise<ApplyResult> {
@@ -31,12 +32,15 @@ export async function applyPostMessage(ctx: ApplyContext, input: PostMessageInpu
     const root = await messageRow(ctx.tx, input.threadId);
     if (!root || root.channelId !== channel.id) throw new UserError("The thread to reply in is not in that channel.");
   }
+  // Imported here, not at the top: the registry imports this module.
+  const viaApp = ctx.calledBy ? ((await import("@/lib/modules/registry-access")).findModule(ctx.calledBy)?.name ?? ctx.calledBy) : null;
   const posted = await insertMessage(ctx.tx, {
     channel,
     author,
     body: input.text,
     parentId: input.threadId ?? null,
-    via: "ai",
+    via: ctx.source === "ai" && !ctx.calledBy ? "ai" : "user",
+    viaApp,
     sourceKey: `${ctx.approvalId}:${ctx.dedupeKey}`,
     mayMentionAll: held.has(P.mentionAll),
   });

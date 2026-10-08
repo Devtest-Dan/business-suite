@@ -32,6 +32,20 @@ banking and email delivery, and it never holds regulated records.
 | Example module: Announcements (post, pin, read receipts, import, AI tools) | `modules/announcements/` |
 | Deploy kit: Docker Compose (app, PostgreSQL 16, Caddy, backups), `install.sh`, `cloud-init.yaml`, `update.sh`, `restore.sh` | `deploy/` |
 
+## The apps
+
+Each app has an owner's guide and an intern's guide in `docs/apps/`.
+
+| App | What it does | Guide |
+| --- | --- | --- |
+| Announcements | Posts to the team, pinned notices, read receipts (the example module) | `modules/announcements/` |
+| Tasks | Projects and tasks: who does what, by when | [docs/apps/tasks.md](docs/apps/tasks.md) |
+| Docs | The team wiki and its procedures | [docs/apps/docs.md](docs/apps/docs.md) |
+| Customers | Contacts, companies, deals in a pipeline, timelines, follow-ups | [docs/apps/customers.md](docs/apps/customers.md) |
+| Assistant | Ask questions across the apps; the business's own AI memory (the brain) | [docs/apps/assistant.md](docs/apps/assistant.md) |
+| Chat | Team chat for up to 50 people | [docs/apps/chat.md](docs/apps/chat.md) |
+| Leads | Web lead forms, a lead inbox with speed to lead, follow-up emails, the funnel report into Customers | [docs/apps/funnel.md](docs/apps/funnel.md) |
+
 ## Run it locally
 
 ```bash

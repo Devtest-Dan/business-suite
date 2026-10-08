@@ -39,7 +39,11 @@ The business's own AI and memory, on its own server.
 
 Which AI provider it uses is set in Settings → AI (DeepSeek by default, or a
 local model through Ollama). With “Redact personal details” on there, names,
-emails and phone numbers are replaced before anything leaves the server.
+emails and phone numbers are replaced before anything leaves the server. Names
+the suite knows (your team, your customers' contacts and companies) leave as
+references such as [name:kqxzbtpa], and the suite puts the name back before it
+looks anything up, so “What did we quote Ana Reyes last time?” still works
+without sending her name.
 
 ### The brain: on or off
 

@@ -24,7 +24,9 @@ has to ask twice. It replaces a rented wiki or a folder of shared documents.
 - **Templates.** Tick "Use as a template" on any page (meeting notes, a
   procedure skeleton) and it is offered when someone starts a new page.
 - **Attachments.** Attach files and pictures to a page (10 MB each). They are
-  kept in the suite's own file storage and the nightly backup.
+  kept in the suite's own file storage: in the nightly backup when that is
+  the server's disk; in an S3 bucket, rely on the bucket's versioning instead
+  (DEPLOY.md, "Files in S3 instead of on the disk").
 - **Search.** Docs has its own search page, and pages also appear in the
   suite's global search. People only ever find pages in spaces they can open.
 - **Procedures.** A page can be a *procedure*: numbered steps, each with an

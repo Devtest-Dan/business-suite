@@ -22,6 +22,8 @@ export interface NewMessage {
   parentId?: string | null;
   attachments?: ChatAttachment[];
   via?: "user" | "ai" | "import";
+  /** The name of the app that posts through Chat's action, shown on the message instead of "drafted by the assistant". */
+  viaApp?: string | null;
   sourceKey?: string | null;
   /** May the author alert everyone with @channel? */
   mayMentionAll?: boolean;
@@ -59,6 +61,7 @@ export async function insertMessage(db: Conn, input: NewMessage): Promise<{ id: 
       mentionsChannel,
       attachments: input.attachments ?? [],
       via: input.via ?? "user",
+      viaApp: input.viaApp ?? null,
       sourceKey: input.sourceKey ?? null,
       ...(input.createdAt ? { createdAt: input.createdAt } : {}),
     })

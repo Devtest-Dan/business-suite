@@ -34,7 +34,7 @@ usage() {
 Options:
   --domain NAME        the address people will use (a DNS A record must point at this server)
   --email ADDRESS      for the HTTPS certificate (Let's Encrypt); optional
-  --setup-code CODE    the code the first-run page asks for (default: a random one, printed at the end)
+  --setup-code CODE    the code the first-run page asks for, at least 8 characters (default: a random one, printed at the end)
   --release FILE|URL   a business-suite-<version>.tar.gz to install instead of this folder
   --sha256 HASH        checks the release file before unpacking it
   --timezone ZONE      the server's timezone for the nightly backup (default: the server's own)
@@ -187,6 +187,35 @@ set_env() {
   fi
 }
 
+# The code the first-run page asks for. The one given (--setup-code or
+# SUITE_SETUP_CODE) wins, then the one kept in .env, then a random one. The
+# example from cloud-init.yaml and anything shorter than 8 characters are never
+# used: everyone can read the example, so it would let a stranger claim the suite.
+SETUP_CODE_EXAMPLE="choose-a-code-only-you-know"
+setup_code_ok() {
+  local code="$1"
+  [[ ${#code} -ge 8 && "${code,,}" != "$SETUP_CODE_EXAMPLE" ]]
+}
+# pick_setup_code GIVEN KEPT: sets SETUP_CODE (and SETUP_CODE_REPLACED=1 when a
+# code was refused and a random one made instead).
+SETUP_CODE_REPLACED=0
+pick_setup_code() {
+  local given="$1" kept="$2"
+  if [[ -n "$given" ]] && setup_code_ok "$given"; then SETUP_CODE="$given"; return; fi
+  if [[ -n "$kept" ]] && setup_code_ok "$kept"; then
+    [[ -n "$given" ]] && note "setup code: the one given cannot be used (it is the example from cloud-init.yaml or shorter than 8 characters); keeping the one this server already has."
+    SETUP_CODE="$kept"
+    return
+  fi
+  SETUP_CODE="$(openssl rand -hex 3)-$(openssl rand -hex 3)"
+  if [[ -n "$given" || -n "$kept" ]]; then
+    SETUP_CODE_REPLACED=1
+    note "setup code: the one given cannot be used: it is the example from cloud-init.yaml or shorter than 8 characters."
+    note "A new random code was made instead. It is printed at the end of this install and kept in $SUITE_HOME/.env"
+    note "(see it again with: sudo grep SUITE_SETUP_CODE $SUITE_HOME/.env). Next time, change SUITE_SETUP_CODE before pasting cloud-init.yaml."
+  fi
+}
+
 step "Address"
 [[ -n "$DOMAIN" ]] || DOMAIN="$(get_env SUITE_DOMAIN)"
 if [[ -z "$DOMAIN" ]]; then
@@ -213,8 +242,7 @@ umask 077
 [[ -n "$(get_env SUITE_SECRET_KEY)" ]] || set_env SUITE_SECRET_KEY "$(openssl rand -base64 32)"
 # The optional business brain's owner token (used only if the owner runs `business-suite brain on`).
 [[ -n "$(get_env BRAIN_ADMIN_TOKEN)" ]] || set_env BRAIN_ADMIN_TOKEN "$(openssl rand -hex 32)"
-if [[ -z "$SETUP_CODE" ]]; then SETUP_CODE="$(get_env SUITE_SETUP_CODE)"; fi
-if [[ -z "$SETUP_CODE" ]]; then SETUP_CODE="$(openssl rand -hex 3)-$(openssl rand -hex 3)"; fi
+pick_setup_code "$SETUP_CODE" "$(get_env SUITE_SETUP_CODE)"
 if [[ -z "$TIMEZONE" ]]; then TIMEZONE="$(get_env SUITE_TZ)"; fi
 if [[ -z "$TIMEZONE" ]]; then TIMEZONE="$(cat /etc/timezone 2>/dev/null || timedatectl show -p Timezone --value 2>/dev/null || echo UTC)"; fi
 set_env SUITE_HOME "$SUITE_HOME"
@@ -262,7 +290,13 @@ fi
 install -m 0755 "$RELEASE_DIR/deploy/suite.sh" /usr/local/bin/business-suite
 
 # ── Build and start ──────────────────────────────────────────────────────────
-compose() { docker compose --project-name business-suite --env-file "$ENV_FILE" -f "$SUITE_HOME/current/deploy/docker-compose.yml" "$@"; }
+# docker compose lets the caller's environment override --env-file, and
+# cloud-init exports its settings (SUITE_SETUP_CODE among them, possibly the
+# refused example) before running this script. So every name in .env is taken
+# out of the environment first: what this script wrote to .env is what runs.
+env_unsets() { sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/-u \1/p' "$ENV_FILE"; }
+# shellcheck disable=SC2046
+compose() { env $(env_unsets) docker compose --project-name business-suite --env-file "$ENV_FILE" -f "$SUITE_HOME/current/deploy/docker-compose.yml" "$@"; }
 
 step "Building the app image (a few minutes the first time)"
 compose build --pull app
@@ -281,12 +315,16 @@ compose exec -T app wget -qO- http://127.0.0.1:3000/health
 echo
 
 trap - ERR
+SETUP_CODE_WHY=""
+(( SETUP_CODE_REPLACED == 1 )) && SETUP_CODE_WHY="
+                 made here, because the code given was the example from
+                 cloud-init.yaml or shorter than 8 characters"
 cat <<EOF
 
 ==> Done. The business suite $VERSION is running.
 
     Open:        $PUBLIC_URL
-    Setup code:  $SETUP_CODE   (the first-run page asks for it)
+    Setup code:  $SETUP_CODE   (the first-run page asks for it)${SETUP_CODE_WHY}
 
     The HTTPS certificate is requested on the first visit; if the page does not
     load yet, check that $DOMAIN points at this server and ports 80 and 443 are open.

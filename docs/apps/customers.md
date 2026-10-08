@@ -85,9 +85,11 @@ Read `docs/ADD_AN_APP.md` first; this module follows it. Files in
 
 **Write actions** (what the AI or an import may propose; each is one record of
 an approval): `customers.import_contact`, `customers.add_note`,
-`customers.create_follow_up`, `customers.update_deal_stage`. AI tools: read
-`find_customers`, `customer_history`, `customer_follow_ups_due`,
-`deals_by_stage`; write `add_customer_note` (and the batch
+`customers.create_follow_up`, `customers.update_deal_stage`, and
+`customers.create_deal` (a deal with its contact, deduplicated like an import
+row; other apps use it, e.g. Leads converting a lead: `deal-with-contact.ts`).
+AI tools: read `find_customers`, `customer_history`, `customer_follow_ups_due`,
+`deals_by_stage`, `deal_outcomes` (how given deals stand, for other apps); write `add_customer_note` (and the batch
 `add_customer_notes`), `create_customer_follow_up`, `update_deal_stage`.
 
 **The Tasks link** is the pattern for any cross-app feature: use the other

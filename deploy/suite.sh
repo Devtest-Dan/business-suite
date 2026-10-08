@@ -11,12 +11,17 @@
 #   business-suite reset-link <email>  a one-time password reset link (when nobody can sign in)
 #   business-suite brain on|off|status the optional business brain (GBrain) for the Assistant app
 #   business-suite compose <args>      any docker compose command, with the right files
+#   business-suite secret-key show     the encryption key, to write down somewhere safe off the server
 
 set -Eeuo pipefail
 SUITE_HOME="${SUITE_HOME:-/opt/business-suite}"
 ENV_FILE="$SUITE_HOME/.env"
 [[ -f "$ENV_FILE" ]] || { echo "No $ENV_FILE: the suite is not installed here (run deploy/install.sh)." >&2; exit 1; }
-compose() { docker compose --project-name business-suite --env-file "$ENV_FILE" -f "$SUITE_HOME/current/deploy/docker-compose.yml" "$@"; }
+# docker compose lets the caller's environment override --env-file: take every
+# name in .env out of the environment, so .env is what runs (see install.sh).
+env_unsets() { sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/-u \1/p' "$ENV_FILE"; }
+# shellcheck disable=SC2046
+compose() { env $(env_unsets) docker compose --project-name business-suite --env-file "$ENV_FILE" -f "$SUITE_HOME/current/deploy/docker-compose.yml" "$@"; }
 get_env() { sed -n "s/^$1=//p" "$ENV_FILE" | tail -1; }
 set_env() {
   if grep -q "^$1=" "$ENV_FILE"; then sed -i "s|^$1=.*|$1=$2|" "$ENV_FILE"; else printf '%s=%s\n' "$1" "$2" >>"$ENV_FILE"; fi
@@ -75,5 +80,13 @@ case "$cmd" in
   reset-link) compose exec -T app node scripts/reset-link.mjs "$@" ;;
   brain) brain "$@" ;;
   compose) compose "$@" ;;
-  *) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
+  secret-key)
+    [[ "${1:-}" == "show" ]] || { echo "Use: sudo business-suite secret-key show" >&2; exit 2; }
+    [[ $EUID -eq 0 ]] || { echo "Only root can read it: sudo business-suite secret-key show" >&2; exit 1; }
+    echo "SUITE_SECRET_KEY (it locks the AI key, the email password and the push key stored in the database)."
+    echo "Write it down somewhere safe that is not this server. Restoring a backup on a new server needs it."
+    echo
+    get_env SUITE_SECRET_KEY
+    ;;
+  *) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;;
 esac

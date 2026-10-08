@@ -166,6 +166,19 @@ export function slackToText(text: string, userName: (slackId: string) => string 
     .replace(/&amp;/g, "&");
 }
 
+/**
+ * The badge that says where a message came from: "from Tasks" when another app
+ * posted it, "drafted by the assistant", "from Slack", or null for a person's
+ * own message. Messages are grouped under one header only when their badges
+ * match, so grouping never hides a badge.
+ */
+export function sourceLabel(m: { via: "user" | "ai" | "import"; viaApp: string | null }): string | null {
+  if (m.viaApp) return `from ${m.viaApp}`;
+  if (m.via === "ai") return "drafted by the assistant";
+  if (m.via === "import") return "from Slack";
+  return null;
+}
+
 /** "1712345678.000200" → a Date. */
 export function slackTsToDate(ts: string): Date {
   return new Date(Math.round(Number(ts) * 1000));

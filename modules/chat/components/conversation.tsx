@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { fetchChanges, fetchOlder, markReadAction, sendMessage } from "../actions";
 import type { MessageView } from "../data";
+import { sourceLabel } from "../text";
 import { Composer } from "./composer";
 import { useLive } from "./live";
 import { MessageItem, type ItemOptions } from "./message-item";
@@ -210,6 +211,7 @@ export function Conversation(props: ConversationProps) {
             Boolean(prev) &&
             prev.authorId === m.authorId &&
             prev.authorName === m.authorName &&
+            sourceLabel(prev) === sourceLabel(m) &&
             !prev.deleted &&
             new Date(m.createdAt).getTime() - new Date(prev.createdAt).getTime() < 5 * 60_000 &&
             !(parentId && prev.id === parentId) &&

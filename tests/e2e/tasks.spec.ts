@@ -11,7 +11,7 @@ import { expect, test, type Page } from "@playwright/test";
  */
 
 const run = (process.env.SUITE_E2E_RUN ??= Date.now().toString(36));
-const owner = { name: "Olive Owner", email: `owner-${run}@example.test`, password: "owner password long enough" };
+const owner = { name: "Olive Owner", email: "owner@example.test", password: "owner password long enough" };
 
 async function ownerSession(page: Page) {
   await page.goto("/");

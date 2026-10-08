@@ -239,6 +239,8 @@ export const approvals = pgTable(
     summary: text("summary").notNull(),
     source: approvalSourceEnum("source").notNull(),
     requestedBy: uuid("requested_by").references(() => users.id, { onDelete: "set null" }),
+    // The app that proposed it from its own code (e.g. "tasks" posting in Chat); apply sees it as ctx.calledBy.
+    calledBy: text("called_by"),
     status: approvalStatusEnum("status").notNull().default("pending"),
     total: integer("total").notNull(),
     appliedCount: integer("applied_count").notNull().default(0),

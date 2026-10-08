@@ -23,7 +23,7 @@ export default async function SetupPage() {
           <label className="block">
             <span className="label">Setup code</span>
             <input name="setupCode" required autoComplete="off" className="input font-mono" />
-            <span className="hint">Printed at the end of the install, or the SETUP_CODE you wrote in the cloud-init text. It stops a stranger who finds this page first from taking it.</span>
+            <span className="hint">Printed at the end of the install (on the server: /var/log/business-suite-install.log), or the SETUP_CODE you wrote in the cloud-init text. It stops a stranger who finds this page first from taking it.</span>
           </label>
         ) : null}
         <fieldset className="space-y-4">
